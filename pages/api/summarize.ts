@@ -74,7 +74,7 @@ export default async function handler(
     const result = await OpenAIResult(payload, apiKey);
     console.log("result", result);
     const redis = Redis.fromEnv();
-    const data = await redis.set(bvId, result);
+    const data = await redis.set(`${bvId}_${process.env.PROMPT_VERSION}`, result);
     console.log(`bvId ${bvId} cached:`, data);
 
     return NextResponse.json(result);

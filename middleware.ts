@@ -7,7 +7,7 @@ const redis = Redis.fromEnv();
 
 const ratelimit = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(5, "1 d"),
+  limiter: Ratelimit.slidingWindow(5, "1 s"),
 });
 
 export async function middleware(req: NextRequest, ev: NextFetchEvent) {
@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.redirect(new URL("/blocked", req.url));
   }
 
-  const result = await redis.get<string>(bvId);
+  const result = await redis.get<string>(`${bvId}_${process.env.PROMPT_VERSION}`);
   if (result) {
     console.log("hit cache for ", bvId);
     return NextResponse.json(result);
