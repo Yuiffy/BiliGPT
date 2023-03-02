@@ -12,6 +12,8 @@ if (typeof window !== "undefined") {
   isSecureContext = window.isSecureContext;
 }
 
+const promptString = process.env.NEXT_PUBLIC_PROMPT_STRING;
+
 export const Home: NextPage = () => {
   const router = useRouter();
   const urlState = router.query.slug;
@@ -229,6 +231,9 @@ export const Home: NextPage = () => {
           </button>
         )}
       </form>
+      <p className="text-left font-medium">
+        询问：{promptString}
+      </p>
       <Toaster
         position="top-center"
         reverseOrder={false}
