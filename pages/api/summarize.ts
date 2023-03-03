@@ -30,6 +30,7 @@ export default async function handler(
   const { title, subtitles } = await fetchSubtitle(bvId);
   if (!subtitles) {
     console.error("No subtitle in the video: ", bvId);
+    if(res) return res.status(501).json('No subtitle in the video');
     return new Response("No subtitle in the video", { status: 501 });
   }
   // @ts-ignore
@@ -70,6 +71,7 @@ export default async function handler(
     console.log("API error", error, error.message);
     return (!res) ?NextResponse.json({
       errorMessage: error.message,
-    }) : error.message;
+    }) : res.status(500).json({message: error.message});
   }
+  res.status(500).json({message: 'what'});
 }
