@@ -4,6 +4,7 @@ import {
   ReconnectInterval
 } from "eventsource-parser";
 import { checkOpenaiApiKey } from "./3rd/openai";
+import { sample } from "./fp";
 import nodeFetch from 'node-fetch';
 const HttpsProxyAgent = require("https-proxy-agent");
 
@@ -26,11 +27,6 @@ export interface OpenAIStreamPayload {
   stream: boolean;
   n: number;
 }
-
-const sample = (arr: any[] = []) => {
-  const len = arr === null ? 0 : arr.length;
-  return len ? arr[Math.floor(Math.random() * len)] : undefined;
-};
 
 function formatResult(result: any) {
   const answer = result.choices[0].message?.content || "";
