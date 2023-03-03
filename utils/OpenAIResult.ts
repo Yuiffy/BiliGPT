@@ -43,9 +43,13 @@ export async function OpenAIResult(
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   const myApiKeyList = process.env.OPENAI_API_KEY;
-  const luckyApiKey = sample(myApiKeyList?.split(","));
-  const openai_api_key = checkOpenaiApiKey(apiKey || "") ? apiKey : luckyApiKey || "";
-
+  let openai_api_key = '';
+  try {
+    const luckyApiKey = sample(myApiKeyList?.split(","));
+    openai_api_key = checkOpenaiApiKey(apiKey || "") ? apiKey : luckyApiKey || "";
+  }catch(e){
+    console.error('luckyApiKey error', e);
+  }
   /* // don't need to validate anymore, already verified in middleware
     if (!checkOpenaiApiKey(openai_api_key)) {
       throw new Error("OpenAI API Key Format Error");

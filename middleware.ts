@@ -11,7 +11,7 @@ const redis = Redis.fromEnv();
 export async function middleware(req: NextRequest, context: NextFetchEvent) {
   const { apiKey, bvId } = await req.json();
   const result = await redis.get<string>(`${bvId}_${process.env.PROMPT_VERSION}`);
-  if (!isDev && result) {
+  if (result) {
     console.log("hit cache for ", bvId);
     return NextResponse.json(result);
   }else{
