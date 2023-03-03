@@ -7,7 +7,7 @@ import { OpenAIResult } from "../../utils/OpenAIResult";
 import { getChunckedTranscripts, getSummaryPrompt } from "../../utils/prompt";
 
 export const config = {
-  // runtime: "edge",
+  runtime: process.env.OPENAI_HTTP_PROXY ? null : "edge"
 };
 
 if (!process.env.OPENAI_API_KEY) {
@@ -63,7 +63,7 @@ export default async function handler(
     console.log("result", result);
     const redis = Redis.fromEnv();
     const data = await redis.set(`${bvId}_${process.env.PROMPT_VERSION}`, result);
-    console.log(`bvId ${bvId} cached:`, data);
+    console.log(`bvId ${bvId}_${process.env.PROMPT_VERSION} cached:`, data);
 
     return  res ? res.status(200).json(result) : NextResponse.json(result);
   } catch (error: any) {

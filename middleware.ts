@@ -14,6 +14,8 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
   if (!isDev && result) {
     console.log("hit cache for ", bvId);
     return NextResponse.json(result);
+  }else{
+    console.log('not hit cache', isDev, `${bvId}_${process.env.PROMPT_VERSION}`);
   }
 
   // licenseKeys

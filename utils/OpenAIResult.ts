@@ -51,7 +51,8 @@ export async function OpenAIResult(
       throw new Error("OpenAI API Key Format Error");
     }
   */
-  const proxyAgent = new HttpsProxyAgent('http://127.0.0.1:12517');
+  const proxyUrl = process.env.OPENAI_HTTP_PROXY;
+  const proxyAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : null;
 
   const res = await nodeFetch("https://api.openai.com/v1/chat/completions", {
     agent: proxyAgent,
