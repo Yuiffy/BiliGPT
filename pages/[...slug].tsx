@@ -4,7 +4,11 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import { useLocalStorage } from "react-use";
+import Sentence from "../components/Sentence";
 import SquigglyLines from "../components/SquigglyLines";
+import { useSummarize } from "../hooks/useSummarize";
+import { CHECKOUT_URL } from "../utils/constants";
+import { extractTimestamp } from "../utils/extractTimestamp";
 
 let isSecureContext = false;
 
@@ -17,32 +21,27 @@ const promptString = process.env.NEXT_PUBLIC_PROMPT_STRING;
 export const Home: NextPage = () => {
   const router = useRouter();
   const urlState = router.query.slug;
-  const [summary, setSummary] = useState<string>("");
-  const [currentBvId, setCurrentBvId] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
   const [curVideo, setCurVideo] = useState<string>("");
+  const [currentBvId, setCurrentBvId] = useState<string>("");
   const [apiKey, setAPIKey] = useLocalStorage<string>("user-openai-apikey");
+  const { loading, summary, resetSummary, summarize } = useSummarize();
 
   useEffect(() => {
-    if (
+    const isValidatedUrl =
       urlState &&
       router.isReady &&
       !curVideo &&
       typeof urlState !== "string" &&
-      urlState.every((subslug: string) => typeof subslug === "string")
-    ) {
+      urlState.every((subslug: string) => typeof subslug === "string");
+
+    if (isValidatedUrl) {
       generateSummary(
-        "https://bilibili.com/" + (urlState as string[]).join("/")
+        `https://bilibili.com/${(urlState as string[]).join("/")}`
       );
     }
+    // TODO: find reason to trigger twice
   }, [router.isReady, urlState]);
 
-  const curUrl = String(curVideo.split(".com")[1]);
-
-  const onFormSubmit = async (e: any) => {
-    e.preventDefault();
-    await generateSummary();
-  };
   const validateUrl = (url?: string) => {
     if (url) {
       if (!url.includes("bilibili.com")) {
@@ -55,12 +54,14 @@ export const Home: NextPage = () => {
         toast.error("请输入哔哩哔哩视频长链接，暂不支持b23.tv或av号");
         return;
       }
+      const curUrl = String(curVideo.split(".com")[1]);
       router.replace(curUrl);
     }
   };
   const generateSummary = async (url?: string) => {
-    setSummary("");
+    resetSummary();
     validateUrl(url);
+
     const videoUrl = url ? url : curVideo;
     const matchResult = videoUrl.match(/\/video\/([^\/\?]+)/);
     let bvId: string | undefined;
@@ -71,52 +72,50 @@ export const Home: NextPage = () => {
       return toast.error("暂不支持此视频链接");
     }
 
-    setLoading(true);
-    const response = await fetch("/api/summarize", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ bvId, apiKey }),
-    });
-
-    if (response.redirected) {
-      window.location.href = response.url;
-    }
-
-    if (!response.ok) {
-      console.log("error", response);
-      if (response.status === 501) {
-        toast.error("啊叻？视频字幕不见了？！");
-      } else if (response.status === 504) {
-        toast.error("网站访问量大，每日限额使用 5 次哦！");
-      } else {
-        toast.error(response.statusText);
-      }
-      setLoading(false);
-      return;
-    }
-
-    // await readStream(response, setSummary);
-    const result = await response.json();
-    if (result.errorMessage) {
-      setLoading(false);
-      toast.error(result.errorMessage);
-      return;
-    }
-    setSummary(result);
-    setLoading(false);
+    await summarize(bvId, apiKey);
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }, 10);
   };
+  const onFormSubmit = async (e: any) => {
+    e.preventDefault();
+    await generateSummary();
+  };
+
+  const summaryArray = summary.split("- ");
+  const formattedSummary = summaryArray
+    .map((s) => {
+      const matchResult = s.match(/\s*(\d+\.\d+)(.*)/);
+      if (matchResult) {
+        const { formattedContent, timestamp } = extractTimestamp(matchResult);
+        return timestamp + formattedContent;
+      }
+      return s;
+    })
+    .join("\n- ");
+
+  const handleCopy = () => {
+    if (!isSecureContext) {
+      toast("复制错误", {
+        icon: "❌",
+      });
+      return;
+    }
+    // todo: update the timestamp
+    navigator.clipboard.writeText(
+      formattedSummary + "\n\n via #BiliGPT b.jimmylv.cn @吕立青_JimmyLv"
+    );
+    toast("复制成功", {
+      icon: "✂️",
+    });
+  };
 
   return (
-    <>
+    <div className="mt-10 sm:mt-40">
       <a
         target="_blank"
         rel="noreferrer"
-        className="mx-auto mb-5 hidden max-w-fit rounded-full border border-gray-800 px-4 py-1 text-gray-500 transition duration-300 ease-in-out hover:scale-105 hover:border-gray-700 md:block"
+        className="mx-auto mb-5 hidden max-w-fit rounded-full border-2 border-dashed px-4 py-1 text-gray-500 transition duration-300 ease-in-out hover:scale-105 hover:border-gray-700 md:block"
         href="https://www.bilibili.com/video/BV1fX4y1Q7Ux/"
       >
         你只需要把任意 Bilibili 视频 URL 中的后缀 "
@@ -169,11 +168,21 @@ export const Home: NextPage = () => {
           <p className="text-left font-medium">
             <span className="text-sky-400 hover:text-sky-600">
               请使用自己的 API Key
-            </span>{" "}
-            <a href="/wechat.jpg" target="_blank" rel="noopener noreferrer">
-              （我的账号可能很快没钱了，也可以就真的{" "}
+            </span>
+            （终于，支持
+            <a
+              className="text-pink-400 hover:underline"
+              href={CHECKOUT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              「购买次数」
+            </a>
+            啦！
+            <a href="/shop" target="_blank" rel="noopener noreferrer">
+              也可以真的
               <span className="text-pink-400 hover:underline">
-                「给我打钱」
+                「给我打赏」
               </span>
               哦 🤣）
             </a>
@@ -184,7 +193,7 @@ export const Home: NextPage = () => {
             value={apiKey}
             onChange={(e) => setAPIKey(e.target.value)}
             className="mx-auto my-4 w-full appearance-none rounded-lg rounded-md border bg-transparent py-2 pl-2 text-sm leading-6 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={"填你的 OpenAI API Key: sk-xxxxx"}
+            placeholder={"填你的 OpenAI API Key: sk-xxxxxx 或者购买的 License Key: xxx-CCDE-xxx"}
           />
           <p className="relin-paragraph-target mt-1 text-base text-slate-500">
             如何获取你自己的 OpenAI API{" "}
@@ -212,7 +221,7 @@ export const Home: NextPage = () => {
             className="z-10 mx-auto mt-7 w-3/4 rounded-2xl border-gray-500 bg-sky-400 p-3 text-lg font-medium text-white transition hover:bg-sky-500 sm:mt-10 sm:w-1/3"
             type="submit"
           >
-            一键总结（三连）
+            一键总结
           </button>
         )}
         {loading && (
@@ -241,7 +250,7 @@ export const Home: NextPage = () => {
       />
       {summary && (
         <div className="mb-8 px-4">
-          <h3 className="m-8 mx-auto max-w-3xl border-t border-gray-600 pt-8 text-center text-2xl font-bold sm:text-4xl">
+          <h3 className="m-8 mx-auto max-w-3xl border-t-2 border-dashed pt-8 text-center text-2xl font-bold sm:text-4xl">
             <a
               href={curVideo}
               className="hover:text-pink-600 hover:underline"
@@ -252,33 +261,38 @@ export const Home: NextPage = () => {
             </a>
           </h3>
           <div
-            className="mx-auto mt-6 max-w-3xl cursor-copy rounded-xl border bg-white p-4 text-lg leading-7 shadow-md transition hover:bg-gray-50"
-            onClick={() => {
-              if (!isSecureContext) {
-                toast("复制错误", {
-                  icon: "❌",
-                });
-                return;
-              }
-              navigator.clipboard.writeText(
-                summary + "\n\n via #BiliGPT b.jimmylv.cn"
-              );
-              toast("复制成功", {
-                icon: "✂️",
-              });
-            }}
+            className="mx-auto mt-6 max-w-3xl cursor-copy rounded-xl border-2 bg-white p-4 text-lg leading-7 shadow-md transition hover:bg-gray-50"
+            onClick={handleCopy}
           >
-            {summary.split("- ").map((sentence, index) => (
+            {summaryArray.map((sentence, index) => (
               <div key={index}>
                 {sentence.length > 0 && (
-                  <li className="mb-2 list-disc">{sentence}</li>
+                  <Sentence bvId={currentBvId} sentence={sentence} />
                 )}
               </div>
             ))}
           </div>
+          <div className="mx-auto mt-7 flex max-w-3xl flex-row-reverse gap-x-4">
+            <a
+              className="w-32 cursor-pointer rounded-lg bg-pink-400 px-2 py-1 text-center font-medium text-white hover:bg-pink-400/80"
+              href="https://space.bilibili.com/37648256"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              （关注我 😛）
+            </a>
+            <a
+              href={curVideo}
+              className="w-24 cursor-pointer rounded-lg bg-sky-400 px-2 py-1 text-center font-medium text-white hover:bg-sky-400/80"
+              target="_blank"
+              rel="noreferrer"
+            >
+              回到视频
+            </a>
+          </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
