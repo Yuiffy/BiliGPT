@@ -7,7 +7,7 @@ import { OpenAIResult } from "../../utils/OpenAIResult";
 import { getChunckedTranscripts, getSummaryPrompt } from "../../utils/prompt";
 
 export const config = {
-  runtime: "edge",
+  // runtime: "edge",
 };
 
 if (!process.env.OPENAI_API_KEY) {
@@ -16,9 +16,10 @@ if (!process.env.OPENAI_API_KEY) {
 
 export default async function handler(
   req: NextRequest,
-  context: NextFetchEvent
+  // context: NextFetchEvent
+  res: any,
 ) {
-  const { bvId, apiKey } = (await req.json()) as {
+  const { bvId, apiKey } = (req.body || (await req.json())) as {
     bvId: string;
     apiKey?: string;
   };
@@ -65,12 +66,12 @@ export default async function handler(
     const data = await redis.set(`${bvId}_${process.env.PROMPT_VERSION}`, result);
       console.log(`bvId ${bvId} cached:`, data);
 
-      return NextResponse.json(result);
+      return  res ? res.status(200).json(result) : NextResponse.json(result);
     } catch (error: any) {
       console.log("API error", error, error.message);
-      return NextResponse.json({
+      return (!res) ?NextResponse.json({
         errorMessage: error.message,
-      });
+      }) : error.message;
     }
   } catch (e) {
     return new Response("No subtitle in the video", { status: 501 });

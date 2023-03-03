@@ -1,9 +1,11 @@
 import {
   createParser,
   ParsedEvent,
-  ReconnectInterval,
+  ReconnectInterval
 } from "eventsource-parser";
 import { checkOpenaiApiKey } from "./3rd/openai";
+import nodeFetch from 'node-fetch';
+const HttpsProxyAgent = require("https-proxy-agent");
 
 // TODO: maybe chat with video?
 export type ChatGPTAgent = "user" | "system" | "assistant";
@@ -48,13 +50,15 @@ export async function OpenAIResult(
   const luckyApiKey = sample(myApiKeyList?.split(","));
   const openai_api_key = checkOpenaiApiKey(apiKey || "") ? apiKey : luckyApiKey || "";
 
-/* // don't need to validate anymore, already verified in middleware
-  if (!checkOpenaiApiKey(openai_api_key)) {
-    throw new Error("OpenAI API Key Format Error");
-  }
-*/
+  /* // don't need to validate anymore, already verified in middleware
+    if (!checkOpenaiApiKey(openai_api_key)) {
+      throw new Error("OpenAI API Key Format Error");
+    }
+  */
+  const proxyAgent = new HttpsProxyAgent('http://127.0.0.1:12517');
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await nodeFetch("https://api.openai.com/v1/chat/completions", {
+    agent: proxyAgent,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${openai_api_key ?? ""}`,
@@ -68,8 +72,10 @@ export async function OpenAIResult(
   }
 
   if (!payload.stream) {
-    const result = await res.json();
+    const result = (typeof res.json !== 'function') ? res.json : (await res.json());
     return formatResult(result);
+  } else {
+    console.log('stream!');
   }
 
   let counter = 0;
