@@ -7,7 +7,7 @@ import { OpenAIResult } from "../../utils/OpenAIResult";
 import { getChunckedTranscripts, getSummaryPrompt } from "../../utils/prompt";
 
 export const config = {
-  runtime: process.env.OPENAI_HTTP_PROXY ? null : "edge"
+  runtime: process.env.OPENAI_HTTP_PROXY ? "nodejs" : "edge"
 };
 
 if (!process.env.OPENAI_API_KEY) {
