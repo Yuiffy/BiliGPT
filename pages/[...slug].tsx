@@ -96,8 +96,9 @@ export const Home: NextPage = () => {
       if (matchResult) {
         const { formattedContent, timestamp } = extractTimestamp(matchResult);
         return timestamp + formattedContent;
+      } else {
+        return s.replace(/\n\n/g, '\n');
       }
-      return s;
     })
     .join("\n- ");
 
