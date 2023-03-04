@@ -54,7 +54,7 @@ export default async function handler(
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
-      max_tokens: apiKey ? 400 : 300,
+      max_tokens: Number.parseInt((process.env.MAX_TOKENS || "400") as string),
       stream: false,
       n: 1,
     };
