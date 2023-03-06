@@ -2,9 +2,10 @@ import {
   createParser,
   ParsedEvent,
   ReconnectInterval
+,
 } from "eventsource-parser";
 import { formatResult } from "~/lib/openai/formatResult";
-import { selectApiKey } from "~/lib/openai/selectApiKey";
+import { isDev } from "~/utils/env";
 import nodeFetch from 'node-fetch';
 const HttpsProxyAgent = require("https-proxy-agent");
 
@@ -35,6 +36,7 @@ export async function OpenAIResult(
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
+  isDev && console.log({ apiKey });
   /* // don't need to validate anymore, already verified in middleware
     if (!checkOpenaiApiKey(openai_api_key)) {
       throw new Error("OpenAI API Key Format Error");

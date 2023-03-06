@@ -1,15 +1,12 @@
 import { Redis } from "@upstash/redis";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { activateLicenseKey } from "~/lib/lemon";
-import { selectApiKey } from "~/lib/openai/selectApiKey";
-import { fetchSubtitle } from "../../lib/bilibili";
-import { isDev } from "../../utils/env";
-import { OpenAIResult } from "../../lib/openai/OpenAIResult";
-import {
-  getChunckedTranscripts,
-  getSummaryPrompt,
-} from "../../lib/openai/prompt";
+import { fetchSubtitle } from "~/lib/bilibili";
+import { OpenAIResult } from "~/lib/openai/OpenAIResult";
+import { getChunckedTranscripts, getSummaryPrompt } from "~/lib/openai/prompt";
+import { selectApiKeyAndActivatedLicenseKey } from "~/lib/openai/selectApiKeyAndActivatedLicenseKey";
+import { SummarizeParams, UserConfig } from "~/lib/types";
+import { isDev } from "~/utils/env";
 
 export const config = {
   runtime: process.env.OPENAI_HTTP_PROXY ? "nodejs" : "edge"
@@ -24,10 +21,8 @@ export default async function handler(
   // context: NextFetchEvent
   res: any,
 ) {
-  const { bvId, apiKey } = (req.body || (await req.json())) as {
-    bvId: string;
-    apiKey?: string;
-  };
+  const { bvId, userConfig } = (req.body || (await req.json())) as SummarizeParams;
+  const { userKey, shouldShowTimestamp } = userConfig;
 
   if (!bvId) {
     return new Response("No bvid in the request", { status: 500 });
@@ -47,10 +42,10 @@ export default async function handler(
   });
   // console.log("========transcripts========", transcripts);
   const text = getChunckedTranscripts(transcripts, transcripts);
-  const prompt = getSummaryPrompt(title, text, true);
+  const prompt = getSummaryPrompt(title, text, shouldShowTimestamp);
 
   try {
-    apiKey && console.log("========use user apiKey========");
+    userKey && console.log("========use user apiKey========");
     isDev && console.log("prompt", prompt);
     const payload = {
       model: "gpt-3.5-turbo",
@@ -59,12 +54,16 @@ export default async function handler(
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
-      max_tokens: Number.parseInt((process.env.MAX_TOKENS || "400") as string),
+      max_tokens: Number.parseInt((process.env.MAX_TOKENS || (userKey ? "400" : "300")) as string),
       stream: false,
       n: 1,
     };
 
-    const openaiApiKey = await selectApiKey(apiKey);
+    // TODO: need refactor
+    const openaiApiKey = await selectApiKeyAndActivatedLicenseKey(
+      userKey,
+      bvId
+    );
     const result = await OpenAIResult(payload, openaiApiKey);
     // TODO: add better logging when dev or prod
     console.log("result", result);

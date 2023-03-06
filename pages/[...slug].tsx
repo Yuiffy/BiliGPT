@@ -2,15 +2,19 @@ import type { NextPage } from "next";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { TypeAnimation } from "react-type-animation";
 import { useLocalStorage } from "react-use";
+import { useAnalytics } from "~/components/context/analytics";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
 import { useToast } from "~/hooks/use-toast";
+import { useSummarize } from "~/hooks/useSummarize";
+import { CHECKOUT_URL, RATE_LIMIT_COUNT } from "~/utils/constants";
+import { extractSentence } from "~/utils/extractSentence";
+import { extractTimestamp } from "~/utils/extractTimestamp";
 import Sentence from "../components/Sentence";
 import SquigglyLines from "../components/SquigglyLines";
-import { useSummarize } from "~/hooks/useSummarize";
-import { CHECKOUT_URL } from "~/utils/constants";
-import { extractTimestamp } from "~/utils/extractTimestamp";
-import { TypeAnimation } from "react-type-animation";
 
 let isSecureContext = false;
 
@@ -26,10 +30,14 @@ export const Home: NextPage = () => {
   const searchParams = useSearchParams();
   const licenseKey = searchParams.get("license_key");
   const [curVideo, setCurVideo] = useState<string>("");
+  const [shouldShowTimestamp, setShouldShowTimestamp] =
+    useLocalStorage<boolean>("should-show-timestamp", false);
   const [currentBvId, setCurrentBvId] = useState<string>("");
-  const [userKey, setUserKey] = useLocalStorage<string>("user-openai-apikey");
+  const [userKey, setUserKey, remove] =
+    useLocalStorage<string>("user-openai-apikey");
   const { loading, summary, resetSummary, summarize } = useSummarize();
   const { toast } = useToast();
+  const { analytics } = useAnalytics();
 
   useEffect(() => {
     licenseKey && setUserKey(licenseKey);
@@ -87,7 +95,7 @@ export const Home: NextPage = () => {
     const bvId = matchResult[1];
     setCurrentBvId(matchResult[1]);
 
-    await summarize(bvId, userKey);
+    await summarize(bvId, { userKey, shouldShowTimestamp });
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }, 10);
@@ -95,12 +103,13 @@ export const Home: NextPage = () => {
   const onFormSubmit = async (e: any) => {
     e.preventDefault();
     await generateSummary();
+    analytics.track("GenerateButton Clicked");
   };
 
   const summaryArray = summary.split("- ");
   const formattedSummary = summaryArray
     .map((s) => {
-      const matchResult = s.match(/^\s*(\d+[\.:]?\d+?)([:：秒 ].*)/);
+      const matchResult = extractSentence(s);
       if (matchResult) {
         const { formattedContent, timestamp } = extractTimestamp(matchResult);
         return timestamp + formattedContent;
@@ -121,6 +130,26 @@ export const Home: NextPage = () => {
     );
     toast({ description: "复制成功 ✂️" });
   };
+
+  const handleApiKeyChange = (e: any) => {
+    if (!e.target.value) {
+      remove();
+    }
+    setUserKey(e.target.value);
+  };
+
+  function handleShowTimestamp(checked: boolean) {
+    console.log("================", checked);
+    setShouldShowTimestamp(checked);
+    analytics
+      .track(`ShowTimestamp Clicked`, {
+        bvId: currentBvId,
+        shouldShowTimestamp: checked,
+      })
+      .then((res) => console.log("tracked!", res))
+      .catch(console.error);
+    // throw new Error("Sentry Frontend Error");
+  }
 
   return (
     <div className="mt-10 w-full sm:mt-40">
@@ -201,12 +230,13 @@ export const Home: NextPage = () => {
             <span className="text-sky-400 hover:text-sky-600">
               请使用自己的 API Key
             </span>
-            （终于，支持
+            （每天免费 {RATE_LIMIT_COUNT} 次哦，支持
             <a
               className="text-pink-400 hover:underline"
               href={CHECKOUT_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => analytics.track("ShopLink Clicked")}
             >
               「购买次数」
             </a>
@@ -223,7 +253,7 @@ export const Home: NextPage = () => {
         <div className="text-lg text-slate-700 dark:text-slate-400">
           <input
             value={userKey}
-            onChange={(e) => setUserKey(e.target.value)}
+            onChange={handleApiKeyChange}
             className="mx-auto my-4 w-full appearance-none rounded-lg rounded-md border bg-transparent py-2 pl-2 text-sm leading-6 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={
               "填你的 OpenAI API Key: sk-xxxxxx 或者购买的 License Key: xxx-CCDE-xxx"
@@ -252,15 +282,14 @@ export const Home: NextPage = () => {
           className="mx-auto mt-10 w-full appearance-none rounded-lg rounded-md border bg-transparent py-2 pl-2 text-sm leading-6 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder={"输入 bilibili.com 视频链接，按下「回车」"}
         />
-        {!loading && (
+        {!loading ? (
           <button
             className="z-10 mx-auto mt-7 w-3/4 rounded-2xl border-gray-500 bg-sky-400 p-3 text-lg font-medium text-white transition hover:bg-sky-500 sm:mt-10 sm:w-1/3"
             type="submit"
           >
             一键总结
           </button>
-        )}
-        {loading && (
+        ) : (
           <button
             className="z-10 mx-auto mt-7 w-3/4 cursor-not-allowed rounded-2xl border-gray-500 bg-sky-400 p-3 text-lg font-medium transition hover:bg-sky-500 sm:mt-10 sm:w-1/3"
             disabled
@@ -275,6 +304,14 @@ export const Home: NextPage = () => {
             </div>
           </button>
         )}
+        <div className="mt-6 flex items-center justify-end space-x-2">
+          <Switch
+            id="timestamp-mode"
+            checked={shouldShowTimestamp}
+            onCheckedChange={handleShowTimestamp}
+          />
+          <Label htmlFor="timestamp-mode">是否显示时间戳</Label>
+        </div>
       </form>
       <p className="text-left font-medium">
         询问：{promptString}
