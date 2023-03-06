@@ -279,11 +279,6 @@ export const Home: NextPage = () => {
       <p className="text-left font-medium">
         询问：{promptString}
       </p>
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        toastOptions={{ duration: 4000 }}
-      />
       {summary && (
         <div className="mb-8 px-4">
           <h3 className="m-8 mx-auto max-w-3xl border-t-2 border-dashed pt-8 text-center text-2xl font-bold sm:text-4xl">

@@ -47,7 +47,7 @@ export default async function handler(
   });
   // console.log("========transcripts========", transcripts);
   const text = getChunckedTranscripts(transcripts, transcripts);
-  const prompt = getSummaryPrompt(title, text, false);
+  const prompt = getSummaryPrompt(title, text, true);
 
   try {
     apiKey && console.log("========use user apiKey========");
