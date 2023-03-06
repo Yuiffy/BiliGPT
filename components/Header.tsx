@@ -31,7 +31,7 @@ export default function Header() {
         </a>
         <a href={BASE_DOMAIN}>
           <h2 className={clsx("text-lg sm:text-3xl", poppins.className)}>
-            <span className="text-pink-400">B</span> BibiGPT
+            <span className="text-pink-400">B</span> GPT
           </h2>
         </a>
       </div>

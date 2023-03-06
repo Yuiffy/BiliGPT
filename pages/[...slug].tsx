@@ -31,7 +31,7 @@ export const Home: NextPage = () => {
   const licenseKey = searchParams.get("license_key");
   const [curVideo, setCurVideo] = useState<string>("");
   const [shouldShowTimestamp, setShouldShowTimestamp] =
-    useLocalStorage<boolean>("should-show-timestamp", false);
+    useLocalStorage<boolean>("should-show-timestamp", true);
   const [currentBvId, setCurrentBvId] = useState<string>("");
   const [userKey, setUserKey, remove] =
     useLocalStorage<string>("user-openai-apikey");
@@ -195,21 +195,21 @@ export const Home: NextPage = () => {
       {/*  </span>{" "}*/}
       {/*  音视频内容 <br />*/}
       {/*</h1>*/}
-      <h1 className="mt-4 w-full text-center text-4xl font-bold sm:w-[64rem] sm:text-7xl">
-        Powered by GPT-3.5 AI
-      </h1>
-      <p className="mt-10 text-center text-lg text-gray-500 sm:text-2xl">
-        在下面的输入框，直接复制粘贴
-        <a
-          className="text-sky-400"
-          href="https://www.bilibili.com/video/BV1fX4y1Q7Ux/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {" bilibili.com "}
-        </a>
-        视频链接 👇
-      </p>
+      {/*<h1 className="mt-4 w-full text-center text-4xl font-bold sm:w-[64rem] sm:text-7xl">*/}
+      {/*  Powered by GPT-3.5 AI*/}
+      {/*</h1>*/}
+      {/*<p className="mt-10 text-center text-lg text-gray-500 sm:text-2xl">*/}
+      {/*  在下面的输入框，直接复制粘贴*/}
+      {/*  <a*/}
+      {/*    className="text-sky-400"*/}
+      {/*    href="https://www.bilibili.com/video/BV1fX4y1Q7Ux/"*/}
+      {/*    target="_blank"*/}
+      {/*    rel="noopener noreferrer"*/}
+      {/*  >*/}
+      {/*    {" bilibili.com "}*/}
+      {/*  </a>*/}
+      {/*  视频链接 👇*/}
+      {/*</p>*/}
       <details>
         <summary className="mt-10 flex cursor-pointer items-center space-x-3	">
           <svg
