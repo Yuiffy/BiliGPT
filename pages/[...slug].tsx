@@ -3,13 +3,14 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { toast, Toaster } from "react-hot-toast";
 import { useLocalStorage } from "react-use";
+import { useToast } from "~/hooks/use-toast";
 import Sentence from "../components/Sentence";
 import SquigglyLines from "../components/SquigglyLines";
-import { useSummarize } from "../hooks/useSummarize";
-import { CHECKOUT_URL } from "../utils/constants";
-import { extractTimestamp } from "../utils/extractTimestamp";
+import { useSummarize } from "~/hooks/useSummarize";
+import { CHECKOUT_URL } from "~/utils/constants";
+import { extractTimestamp } from "~/utils/extractTimestamp";
+import { TypeAnimation } from "react-type-animation";
 
 let isSecureContext = false;
 
@@ -28,6 +29,7 @@ export const Home: NextPage = () => {
   const [currentBvId, setCurrentBvId] = useState<string>("");
   const [userKey, setUserKey] = useLocalStorage<string>("user-openai-apikey");
   const { loading, summary, resetSummary, summarize } = useSummarize();
+  const { toast } = useToast();
 
   useEffect(() => {
     licenseKey && setUserKey(licenseKey);
@@ -52,13 +54,21 @@ export const Home: NextPage = () => {
   const validateUrl = (url?: string) => {
     if (url) {
       if (!url.includes("bilibili.com")) {
-        toast.error("请输入哔哩哔哩视频长链接，暂不支持b23.tv或av号");
+        toast({
+          // variant: "destructive",
+          title: "暂不支持此视频链接",
+          description: "请输入哔哩哔哩视频长链接，暂不支持b23.tv或av号",
+        });
         return;
       }
       setCurVideo(url);
     } else {
       if (!curVideo.includes("bilibili.com")) {
-        toast.error("请输入哔哩哔哩视频长链接，暂不支持b23.tv或av号");
+        toast({
+          // variant: "destructive",
+          title: "暂不支持此视频链接",
+          description: "请输入哔哩哔哩视频长链接，暂不支持b23.tv或av号",
+        });
         return;
       }
       const curUrl = String(curVideo.split(".com")[1]);
@@ -71,13 +81,11 @@ export const Home: NextPage = () => {
 
     const videoUrl = url ? url : curVideo;
     const matchResult = videoUrl.match(/\/video\/([^\/\?]+)/);
-    let bvId: string | undefined;
-    if (matchResult) {
-      bvId = matchResult[1];
-      setCurrentBvId(matchResult[1]);
-    } else {
-      return toast.error("暂不支持此视频链接");
+    if (!matchResult) {
+      return;
     }
+    const bvId = matchResult[1];
+    setCurrentBvId(matchResult[1]);
 
     await summarize(bvId, userKey);
     setTimeout(() => {
@@ -97,29 +105,25 @@ export const Home: NextPage = () => {
         const { formattedContent, timestamp } = extractTimestamp(matchResult);
         return timestamp + formattedContent;
       } else {
-        return s.replace(/\n\n/g, '\n');
+        return s.replace(/\n\n/g, "\n");
       }
     })
     .join("\n- ");
 
   const handleCopy = () => {
     if (!isSecureContext) {
-      toast("复制错误", {
-        icon: "❌",
-      });
+      toast({ description: "复制错误 ❌" });
       return;
     }
     // todo: update the timestamp
     navigator.clipboard.writeText(
-      formattedSummary + "\n\n via #BiliGPT b.jimmylv.cn @吕立青_JimmyLv"
+      formattedSummary + "\n\n via #BibiGPT b.jimmylv.cn @吕立青_JimmyLv"
     );
-    toast("复制成功", {
-      icon: "✂️",
-    });
+    toast({ description: "复制成功 ✂️" });
   };
 
   return (
-    <div className="mt-10 sm:mt-40">
+    <div className="mt-10 w-full sm:mt-40">
       <a
         target="_blank"
         rel="noreferrer"
@@ -136,15 +140,35 @@ export const Home: NextPage = () => {
         <span className="text-sky-400 underline">jimmylv.cn</span>
         /video/BV1k84y1e7fW
       </a>
-      {/*<h1 className="max-w-5xl text-center text-4xl font-bold sm:text-7xl">*/}
+      {/*<h1 className="h-[5rem] w-full text-center text-4xl font-bold sm:w-[64rem] sm:text-7xl">*/}
       {/*  一键总结{" "}*/}
-      {/*  <span className="relative whitespace-nowrap text-[#3290EE]">*/}
+      {/*  <span className="relative whitespace-nowrap	text-pink-400">*/}
       {/*    <SquigglyLines />*/}
-      {/*    <span className="relative text-pink-400	">哔哩哔哩</span>*/}
+      {/*    <TypeAnimation*/}
+      {/*      sequence={[*/}
+      {/*        "哔哩哔哩",*/}
+      {/*        2000,*/}
+      {/*        "YouTube",*/}
+      {/*        2000,*/}
+      {/*        "播客",*/}
+      {/*        2000,*/}
+      {/*        "会议",*/}
+      {/*        3000,*/}
+      {/*        () => {*/}
+      {/*          console.log("Done typing!"); // Place optional callbacks anywhere in the array*/}
+      {/*        },*/}
+      {/*      ]}*/}
+      {/*      wrapper="span"*/}
+      {/*      cursor={true}*/}
+      {/*      repeat={Infinity}*/}
+      {/*      className="relative text-pink-400	"*/}
+      {/*    />*/}
       {/*  </span>{" "}*/}
-      {/*  视频内容 <br />*/}
-      {/*  <div className="mt-4">Powered by GPT-3.5 AI</div>*/}
+      {/*  音视频内容 <br />*/}
       {/*</h1>*/}
+      <h1 className="mt-4 w-full text-center text-4xl font-bold sm:w-[64rem] sm:text-7xl">
+        Powered by GPT-3.5 AI
+      </h1>
       <p className="mt-10 text-center text-lg text-gray-500 sm:text-2xl">
         在下面的输入框，直接复制粘贴
         <a

@@ -1,26 +1,19 @@
 import { Redis } from "@upstash/redis";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { validateLicenseKey } from "./utils/3rd/lemon";
-import { checkOpenaiApiKey } from "./utils/3rd/openai";
-import { ratelimit } from "./utils/3rd/upstash";
+import { validateLicenseKey } from "./lib/lemon";
+import { checkOpenaiApiKeys } from "./lib/openai/openai";
+import { ratelimit } from "./lib/upstash";
 import { isDev } from "./utils/env";
 
 const redis = Redis.fromEnv();
 
 export async function middleware(req: NextRequest, context: NextFetchEvent) {
   const { apiKey, bvId } = await req.json();
-  const result = await redis.get<string>(`${bvId}_${process.env.PROMPT_VERSION}`);
-  if (result) {
-    console.log("hit cache for ", bvId);
-    return NextResponse.json(result);
-  }else{
-    console.log('not hit cache', isDev, `${bvId}_${process.env.PROMPT_VERSION}`);
-  }
 
   // licenseKeys
   if (apiKey) {
-    if (checkOpenaiApiKey(apiKey)) {
+    if (checkOpenaiApiKeys(apiKey)) {
       return NextResponse.next();
     }
 
@@ -35,6 +28,12 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
   console.log(`======== ip ${identifier}, remaining: ${remaining} ========`);
   if (!apiKey && !success) {
     return NextResponse.redirect(new URL("/shop", req.url));
+  }
+
+  const result = await redis.get<string>(bvId);
+  if (result) {
+    console.log("hit cache for ", bvId);
+    return NextResponse.json(result);
   }
 }
 
