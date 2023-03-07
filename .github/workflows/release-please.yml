@@ -2,16 +2,21 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
 name: release-please
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
     steps:
       - uses: google-github-actions/release-please-action@v3
+        id: release
         with:
           release-type: node
           token: ${{secrets.GITHUB_TOKEN}}
+          default-branch: main
           package-name: bibi-gpt

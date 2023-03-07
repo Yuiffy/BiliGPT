@@ -1,14 +1,20 @@
-# 🤖 BiliGPT 哔哩哔哩 · 视频内容一键总结 [b.jimmylv.cn](https://b.jimmylv.cn/)
+# 🤖 BibiGPT · 音视频内容一键总结 [b.jimmylv.cn](https://b.jimmylv.cn/)
+
+🎉 (原 BiliGPT)，现已经支持：哔哩哔哩丨 YouTube 视频内容一键总结，“省流神器 & 课代表”。
+
+🚧 开发中：支持播客丨会议丨本地音视频文件等输入，Prompt 和输出端均在持续迭代中，敬请期待！
 
 备用地址：https://chat-bilibili-video.vercel.app
 
-This project summarizes Bilibili videos for you using AI.
+---
+
+🎬 This project summarizes Bilibili/YouTube/Podcast/Meeting/... videos or audios for you using AI.
 
 🤯 Inspired by [Nutlope/news-summarizer](https://github.com/Nutlope/news-summarizer) & [zhengbangbo/chat-simplifier](https://github.com/zhengbangbo/chat-simplifier/) & [lxfater/BilibiliSummary](https://github.com/lxfater/BilibiliSummary)
 
-[![哔哩哔哩视频总结工具](./public/screenshot.png)](https://twitter.com/Jimmy_JingLv/status/1630137750572728320?s=20)
+[![BibiGPT音视频总结神器](./public/BibiGPT.gif)](https://twitter.com/Jimmy_JingLv/status/1630137750572728320?s=20)
 
-[【BiliGPT】AI 自动总结 B站 视频内容，GPT-3 智能提取并总结字幕](https://www.bilibili.com/video/BV1fX4y1Q7Ux/?vd_source=dd5a650b0ad84edd0d54bb18196ecb86)
+🚀 First Launch: [【BibiGPT】AI 自动总结 B 站视频内容，GPT-3 智能提取并总结字幕](https://www.bilibili.com/video/BV1fX4y1Q7Ux/?vd_source=dd5a650b0ad84edd0d54bb18196ecb86)
 
 ## How it works
 
@@ -36,7 +42,7 @@ npm run dev
 
 Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples):
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/JimmyLv/BiliGPT&env=OPENAI_API_KEY&project-name=chat-bilibili-video&repo-name=chat-bilibili-video)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/JimmyLv/BibiGPT&env=OPENAI_API_KEY&project-name=chat-bilibili-video&repo-name=chat-bilibili-video)
 
 ## Support -> Contact Me
 

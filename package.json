@@ -6,7 +6,7 @@
     "build": "next build",
     "start": "next start"
   },
-  "repository": "https://github.com/JimmyLv/BiliGPT.git",
+  "repository": "https://github.com/JimmyLv/BibiGPT.git",
   "dependencies": {
     "@next/font": "^13.1.5",
     "@radix-ui/react-dialog": "^1.0.2",
@@ -22,7 +22,6 @@
     "@supabase/auth-ui-shared": "^0.1.2",
     "@supabase/supabase-js": "^2.10.0",
     "@teovilla/shadcn-ui-react": "^0.5.0",
-    "@types/lodash": "^4.14.191",
     "@upstash/ratelimit": "^0.3.8",
     "@upstash/redis": "^1.20.1",
     "@vercel/analytics": "^0.1.8",
@@ -34,9 +33,9 @@
     "flowbite-react": "^0.4.1",
     "focus-trap-react": "^10.1.0",
     "framer-motion": "^9.0.1",
+    "get-video-id": "^3.6.5",
     "https-proxy-agent": "^5.0.1",
     "lemonsqueezy.ts": "^0.1.6",
-    "lodash": "^4.17.21",
     "lucide-react": "^0.122.0",
     "next": "latest",
     "next-themes": "^0.2.1",
@@ -66,5 +65,6 @@
     "semantic-release": "^20.1.1",
     "tailwindcss": "^3.2.4",
     "typescript": "4.9.4"
-  }
+  },
+  "version": "1.2.0"
 }

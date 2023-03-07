@@ -1,5 +1,8 @@
 import { Inter as FontSans } from "@next/font/google";
-import { createBrowserSupabaseClient, Session } from "@supabase/auth-helpers-nextjs";
+import {
+  createBrowserSupabaseClient,
+  Session,
+} from "@supabase/auth-helpers-nextjs";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "next-themes";
@@ -7,6 +10,7 @@ import type { AppProps } from "next/app";
 import React, { useState } from "react";
 import CommandMenu from "~/components/CommandMenu";
 import { AnalyticsProvider } from "~/components/context/analytics";
+import { useSignInModal } from "~/components/sign-in-modal";
 import { TailwindIndicator } from "~/components/tailwind-indicator";
 import { Toaster } from "~/components/ui/toaster";
 import { TooltipProvider } from "~/components/ui/tooltip";
@@ -28,6 +32,7 @@ function MyApp({
 }>) {
   // Create a new supabase browser client on every first render.
   const [supabaseClient] = useState(() => createBrowserSupabaseClient());
+  const { SignInModal, setShowSignInModal: showSingIn } = useSignInModal();
 
   return (
     <AnalyticsProvider>
@@ -37,14 +42,14 @@ function MyApp({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider>
-            <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-2 pt-8 sm:pt-10">
-              <Header />
-              <main
-                className={cn(
-                  "mx-auto flex max-w-5xl flex-1 flex-col justify-center bg-white font-sans text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-50",
-                  fontSans.variable
-                )}
-              >
+            <div
+              className={cn(
+                "mx-auto flex min-h-screen flex-col justify-center font-sans",
+                fontSans.variable
+              )}
+            >
+              <Header showSingIn={showSingIn} />
+              <main className="mx-auto flex max-w-5xl flex-1 flex-col justify-center bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-50">
                 <Component {...pageProps} />
                 <Analytics />
                 <CommandMenu />
@@ -53,6 +58,7 @@ function MyApp({
             </div>
             <TailwindIndicator />
             <Toaster />
+            <SignInModal />
           </TooltipProvider>
         </ThemeProvider>
       </SessionContextProvider>

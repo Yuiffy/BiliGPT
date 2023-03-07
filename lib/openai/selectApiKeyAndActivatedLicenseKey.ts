@@ -1,10 +1,10 @@
 import { activateLicenseKey } from "~/lib/lemon";
-import { checkOpenaiApiKeys } from "~/lib/openai/openai";
+import { checkOpenaiApiKeys } from "~/lib/openai/checkOpenaiApiKey";
 import { sample } from "~/utils/fp";
 
 export async function selectApiKeyAndActivatedLicenseKey(
   apiKey?: string,
-  bvId?: string
+  videoId?: string
 ) {
   if (apiKey) {
     if (checkOpenaiApiKeys(apiKey)) {
@@ -13,7 +13,7 @@ export async function selectApiKeyAndActivatedLicenseKey(
     }
 
     // user is using validated licenseKey
-    const activated = await activateLicenseKey(apiKey, bvId);
+    const activated = await activateLicenseKey(apiKey, videoId);
     if (!activated) {
       throw new Error("licenseKey is not validated!");
     }
