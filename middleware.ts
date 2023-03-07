@@ -25,7 +25,7 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
     const { userConfig, videoConfig } = (await req.json()) as SummarizeParams;
     const { userKey, shouldShowTimestamp } = userConfig || {};
     const { videoId: bvId } = videoConfig || {};
-    const cacheId = shouldShowTimestamp ? `timestamp-${bvId}` : bvId;
+    const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${bvId}_${process.env.PROMPT_VERSION}`;
 
     // licenseKeys
     if (userKey) {

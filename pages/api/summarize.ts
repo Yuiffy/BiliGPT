@@ -65,8 +65,7 @@ export default async function handler(
     // TODO: add better logging when dev or prod
     console.log("result", result);
     const redis = Redis.fromEnv();
-    const videoIdWithVersion = `${videoId}_${process.env.PROMPT_VERSION}`;
-    const cacheId = shouldShowTimestamp ? `timestamp-${videoIdWithVersion}` : videoIdWithVersion;
+    const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${videoId}_${process.env.PROMPT_VERSION}`;
     const data = await redis.set(cacheId, result);
     console.log(`video ${cacheId} cached:`, data);
 
