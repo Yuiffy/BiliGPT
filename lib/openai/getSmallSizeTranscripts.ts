@@ -74,15 +74,15 @@ export function getSmallSizeTranscripts(newTextData: SubtitleItem[], oldTextData
 
   for (let i = 0; i < oldTextData.length; i++) {
     const obj = oldTextData[i];
-    // 被删去的才应该不计入吧
-    if (!itemInIt(newTextData, obj.text)) {
+    // 在newTextData里的已经在resultData里了，不需要处理
+    if (itemInIt(newTextData, obj.text)) {
       continue;
     }
 
     const nextTextByteLength = getByteLength(obj.text);
     const isOverLimit = lastByteLength + nextTextByteLength > byteLimit;
     if (isOverLimit) {
-      // 超额的也不许删减字数加入！影响判断了
+      // 超额的也不许删减字数加入！影响判断了。而且这个插入方式，每个其实都会插回来，导致byte溢出
       // const overRate = (lastByteLength + nextTextByteLength - byteLimit) / nextTextByteLength;
       // const chunkedText = obj.text.substring(0, Math.floor(obj.text.length * overRate));
       // resultData.push({ text: chunkedText, index: obj.index });
