@@ -73,16 +73,14 @@ export function getSmallSizeTranscripts(newTextData: SubtitleItem[], oldTextData
 
   for (let i = 0; i < oldTextData.length; i++) {
     const obj = oldTextData[i];
-    if (itemInIt(newTextData, obj.text)) {
+    if (!itemInIt(newTextData, obj.text)) {
       continue;
     }
 
     const nextTextByteLength = getByteLength(obj.text);
     const isOverLimit = lastByteLength + nextTextByteLength > byteLimit;
     if (isOverLimit) {
-      const overRate = (lastByteLength + nextTextByteLength - byteLimit) / nextTextByteLength;
-      const chunkedText = obj.text.substring(0, Math.floor(obj.text.length * overRate));
-      resultData.push({ text: chunkedText, index: obj.index });
+      // skip
     } else {
       resultData.push(obj);
     }
