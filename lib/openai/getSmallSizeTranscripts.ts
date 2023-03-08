@@ -56,8 +56,9 @@ type SubtitleItem = {
   index: number;
 }
 
+const ENV_LIMIT = process.env.PROMPT_BYTE_LIMIT_COUNT;
 // Seems like 15,000 bytes is the limit for the prompt
-const LIMIT_COUNT = 7000; // 1000 is a buffer
+const LIMIT_COUNT = ENV_LIMIT ? Number.parseInt(ENV_LIMIT) : 7000; // 1000 is a buffer
 export function getSmallSizeTranscripts(newTextData: SubtitleItem[], oldTextData: SubtitleItem[], byteLimit: number = LIMIT_COUNT): string {
   const text = newTextData.sort((a, b) => a.index - b.index).map(t => t.text).join(" ");
   const byteLength = getByteLength(text);
@@ -73,23 +74,25 @@ export function getSmallSizeTranscripts(newTextData: SubtitleItem[], oldTextData
 
   for (let i = 0; i < oldTextData.length; i++) {
     const obj = oldTextData[i];
-    if (itemInIt(newTextData, obj.text)) {
+    // 被删去的才应该不计入吧
+    if (!itemInIt(newTextData, obj.text)) {
       continue;
     }
 
     const nextTextByteLength = getByteLength(obj.text);
     const isOverLimit = lastByteLength + nextTextByteLength > byteLimit;
     if (isOverLimit) {
-      const overRate = (lastByteLength + nextTextByteLength - byteLimit) / nextTextByteLength;
-      const chunkedText = obj.text.substring(0, Math.floor(obj.text.length * overRate));
-      resultData.push({ text: chunkedText, index: obj.index });
+      // 超额的也不许删减字数加入！影响判断了
+      // const overRate = (lastByteLength + nextTextByteLength - byteLimit) / nextTextByteLength;
+      // const chunkedText = obj.text.substring(0, Math.floor(obj.text.length * overRate));
+      // resultData.push({ text: chunkedText, index: obj.index });
     } else {
       resultData.push(obj);
     }
     resultText = resultData.sort((a, b) => a.index - b.index).map(t => t.text).join(" ");
     lastByteLength = getByteLength(resultText);
   }
-
+  console.log('resultData length', resultData.length);
   return resultText;
 }
 
