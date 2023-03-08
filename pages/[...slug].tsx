@@ -29,13 +29,14 @@ export const Home: NextPage<{
   const licenseKey = searchParams.get("license_key");
 
   // TODO: add mobx or state manager
+  const [currentVideoId, setCurrentVideoId] = useState<string>("");
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string>("");
   const [shouldShowTimestamp, setShouldShowTimestamp] =
-    useLocalStorage<boolean>("should-show-timestamp", true);
-  const [currentVideoId, setCurrentVideoId] = useState<string>("");
+    useLocalStorage<boolean>("should-show-timestamp");
   const [userKey, setUserKey, remove] =
     useLocalStorage<string>("user-openai-apikey");
-  const { loading, summary, resetSummary, summarize } = useSummarize(showSingIn);
+  const { loading, summary, resetSummary, summarize } =
+    useSummarize(showSingIn);
   const { toast } = useToast();
   const { analytics } = useAnalytics();
 
@@ -62,8 +63,8 @@ export const Home: NextPage<{
     // note: auto refactor by ChatGPT
     const videoUrl = url || currentVideoUrl;
     if (
-      !videoUrl.includes("bilibili.com") &&
-      !videoUrl.includes("youtube.com")
+      // https://www.bilibili.com/video/BV1AL4y1j7RY
+      !(videoUrl.includes("bilibili.com/video/BV") || videoUrl.includes("youtube.com"))
     ) {
       toast({
         title: "暂不支持此视频链接",
@@ -123,7 +124,6 @@ export const Home: NextPage<{
   };
 
   function handleShowTimestamp(checked: boolean) {
-    console.log("================", checked);
     setShouldShowTimestamp(checked);
     analytics
       .track(`ShowTimestamp Clicked`, {

@@ -5,7 +5,11 @@ import { NextResponse } from "next/server";
 import { SummarizeParams } from "~/lib/types";
 import { validateLicenseKey } from "./lib/lemon";
 import { checkOpenaiApiKeys } from "./lib/openai/checkOpenaiApiKey";
-import { ratelimitForFreeAccounts, ratelimitForIps } from "./lib/upstash";
+import {
+  ratelimitForApiKeyIps,
+  ratelimitForFreeAccounts,
+  ratelimitForIps,
+} from "./lib/upstash";
 import { isDev } from "./utils/env";
 
 const redis = Redis.fromEnv();
@@ -19,6 +23,10 @@ function redirectAuth() {
     { status: 401, headers: { "content-type": "application/json" } }
   );
 }
+function redirectShop(req: NextRequest) {
+  console.error("Account Limited");
+  return NextResponse.redirect(new URL("/shop", req.url));
+}
 
 export async function middleware(req: NextRequest, context: NextFetchEvent) {
   try {
@@ -26,25 +34,37 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
     const { userKey, shouldShowTimestamp } = userConfig || {};
     const { videoId: bvId } = videoConfig || {};
     const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${bvId}_${process.env.PROMPT_VERSION}`;
+    const ipIdentifier = req.ip ?? "127.0.0.11";
 
     // licenseKeys
     if (userKey) {
       if (checkOpenaiApiKeys(userKey)) {
+        const { success, remaining } = await ratelimitForApiKeyIps.limit(
+          ipIdentifier
+        );
+        console.log(`use user apiKey ${ipIdentifier}, remaining: ${remaining}`);
+        if (!success) {
+          return redirectShop(req);
+        }
+
         return NextResponse.next();
       }
 
       // 3. something-invalid-sdalkjfasncs-key
-      if (!(await validateLicenseKey(userKey, cacheId))) {
-        return redirectAuth();
+      const isValidatedLicense = await validateLicenseKey(userKey, cacheId);
+      if (!isValidatedLicense) {
+        return redirectShop(req);
       }
     }
 
+    if (isDev) {
+      return NextResponse.next();
+    }
+    //  👇 below only works for production
+
     if (!userKey) {
-      const identifier = req.ip ?? "127.0.0.8";
-      const { success, remaining } = await ratelimitForIps.limit(identifier);
-      console.log(
-        `======== ip ${identifier}, remaining: ${remaining} ========`
-      );
+      const { success, remaining } = await ratelimitForIps.limit(ipIdentifier);
+      console.log(`ip free user ${ipIdentifier}, remaining: ${remaining}`);
       if (!success) {
         // We need to create a response and hand it to the supabase client to be able to modify the response headers.
         const res = NextResponse.next();
@@ -62,11 +82,9 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
           const { success, remaining } = await ratelimitForFreeAccounts.limit(
             userEmail
           );
-          console.log(
-            `======== user ${userEmail}, remaining: ${remaining} ========`
-          );
+          console.log(`login user ${userEmail}, remaining: ${remaining}`);
           if (!success) {
-            return redirectAuth();
+            return redirectShop(req);
           }
 
           return res;
@@ -75,8 +93,6 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
         // todo: throw error to trigger a modal, rather than redirect a page
         return redirectAuth();
       }
-
-      // return redirectAuth();
     }
 
     const result = await redis.get<string>(cacheId);
@@ -85,10 +101,11 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
       return NextResponse.json(result);
     }
   } catch (e) {
+    console.error(e)
     return redirectAuth();
   }
 }
 
 export const config = {
-  matcher: "/api/summarize",
+  matcher: "/api/sumup",
 };

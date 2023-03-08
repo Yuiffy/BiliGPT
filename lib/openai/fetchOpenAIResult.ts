@@ -9,8 +9,11 @@ import { isDev } from "~/utils/env";
 import nodeFetch from 'node-fetch';
 const HttpsProxyAgent = require("https-proxy-agent");
 
-// TODO: maybe chat with video?
-export type ChatGPTAgent = "user" | "system" | "assistant";
+export enum ChatGPTAgent {
+  user = "user",
+  system = "system",
+  assistant = "assistant",
+}
 
 export interface ChatGPTMessage {
   role: ChatGPTAgent;
