@@ -139,7 +139,7 @@ export const Home: NextPage<{
   return (
     <div className="mt-10 w-full sm:mt-40">
       <UsageDescription />
-      <TypingSlogan />
+      {/*<TypingSlogan />*/}
       <UsageAction />
       <UserKeyInput value={userKey} onChange={handleApiKeyChange} />
       <form onSubmit={onFormSubmit} className="grid place-items-center">

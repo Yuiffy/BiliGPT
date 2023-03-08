@@ -21,22 +21,22 @@ export default function Header({
     <header className="supports-backdrop-blur:bg-white/60 max-w-8xl sticky top-0 z-40 mx-auto w-full flex-none border-b border-slate-900/10 bg-white/95 pt-2 backdrop-blur  transition-colors duration-500 dark:border-slate-50/[0.06] dark:border-slate-300/10 dark:bg-transparent lg:z-50 lg:mx-0 lg:border-0 lg:border-b lg:border-slate-900/10 lg:px-8">
       <div className="flex items-center justify-between px-3 sm:px-3">
         <div className="flex items-center space-x-3">
-          <a
-            href="https://space.bilibili.com/37648256"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src="/video-off.svg"
-              alt="logo"
-              className="animate-bounce"
-              width={34}
-              height={34}
-            />
-          </a>
+          {/*<a*/}
+          {/*  href="https://space.bilibili.com/37648256"*/}
+          {/*  target="_blank"*/}
+          {/*  rel="noopener noreferrer"*/}
+          {/*>*/}
+          {/*  <Image*/}
+          {/*    src="/video-off.svg"*/}
+          {/*    alt="logo"*/}
+          {/*    className="animate-bounce"*/}
+          {/*    width={34}*/}
+          {/*    height={34}*/}
+          {/*  />*/}
+          {/*</a>*/}
           <a href={BASE_DOMAIN}>
             <h2 className={clsx("text-lg sm:text-2xl", poppins.className)}>
-              <span className="text-pink-400">哔哔终结者</span> BibiGPT
+              <span className="text-pink-400">B</span> BGPT
             </h2>
           </a>
           <div
