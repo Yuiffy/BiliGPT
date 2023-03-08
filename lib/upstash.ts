@@ -15,7 +15,7 @@ export const ratelimitForIps = new Ratelimit({
 });
 export const ratelimitForApiKeyIps = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(FREE_LIMIT_COUNT * 2, "1 d"),
+  limiter: Ratelimit.fixedWindow(FREE_LIMIT_COUNT * 2, "1 s"),
   analytics: true,
 });
 export const ratelimitForFreeAccounts = new Ratelimit({

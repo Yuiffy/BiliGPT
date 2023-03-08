@@ -79,6 +79,7 @@ export default async function handler(
       videoId
     );
     const result = await fetchOpenAIResult(payload, openaiApiKey);
+    console.log('result=', result);
     // TODO: add better logging when dev or prod
     const redis = Redis.fromEnv();
     const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${videoId}_${process.env.PROMPT_VERSION}`;

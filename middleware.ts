@@ -57,6 +57,12 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
       }
     }
 
+    const result = await redis.get<string>(cacheId);
+    if (result) {
+      console.log("hit cache for ", cacheId);
+      return NextResponse.json(result);
+    }
+
     if (isDev) {
       return NextResponse.next();
     }
@@ -93,12 +99,6 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
         // todo: throw error to trigger a modal, rather than redirect a page
         return redirectAuth();
       }
-    }
-
-    const result = await redis.get<string>(cacheId);
-    if (result) {
-      console.log("hit cache for ", cacheId);
-      return NextResponse.json(result);
     }
   } catch (e) {
     console.error(e)
