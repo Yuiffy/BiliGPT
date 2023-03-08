@@ -40,7 +40,7 @@ function filterHalfRandomly<T>(arr: T[]): T[] {
       filteredArr.push(arr[i]);
     }
   }
-
+  console.log("filter once", { l1: arr.length, l2: filteredArr.length });
   return filteredArr;
 }
 function getByteLength(text: string) {
