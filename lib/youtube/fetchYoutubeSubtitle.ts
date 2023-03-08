@@ -7,10 +7,12 @@ export async function fetchYoutubeSubtitle(
   shouldShowTimestamp: boolean | undefined
 ) {
   const { title, subtitleList } = await fetchYoutubeSubtitleUrls(videoId);
-  if (subtitleList?.length <= 0) {
+  if (!subtitleList || subtitleList?.length <= 0) {
     return { title, subtitlesArray: null };
   }
+  console.log('subtitleList', subtitleList);
   const betterSubtitle =
+    find(subtitleList, {quality: 'Japanese (auto'}) ||
     find(subtitleList, { quality: "zh-CN" }) ||
     find(subtitleList, { quality: "English" }) ||
     find(subtitleList, { quality: "English (auto" }) ||

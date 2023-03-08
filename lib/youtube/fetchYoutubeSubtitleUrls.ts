@@ -1,9 +1,13 @@
+import { isDev } from "~/utils/env";
+
 export const SUBTITLE_DOWNLOADER_URL = "https://savesubs.com";
 export async function fetchYoutubeSubtitleUrls(videoId: string) {
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
   const response = await fetch(SUBTITLE_DOWNLOADER_URL + "/action/extract", {
+    // agent: proxyAgent,
     method: "POST",
     body: JSON.stringify({
-      data: { url: `https://www.youtube.com/watch?v=${videoId}` },
+      data: { url },
     }),
     headers: {
       "Content-Type": "text/plain",
@@ -15,7 +19,9 @@ export async function fetchYoutubeSubtitleUrls(videoId: string) {
     },
   });
   const { response: json = {} } = await response.json();
-  // console.log("========json========", json);
+  if(isDev) {
+    console.log("========json========", { json, url });
+  }
   /*
   * "title": "Microsoft vs Google: AI War Explained | tech",
     "duration": "13 minutes and 15 seconds",
