@@ -32,7 +32,7 @@ export const Home: NextPage<{
   const [currentVideoId, setCurrentVideoId] = useState<string>("");
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string>("");
   const [shouldShowTimestamp, setShouldShowTimestamp] =
-    useLocalStorage<boolean>("should-show-timestamp");
+    useLocalStorage<boolean>("should-show-timestamp", true);
   const [userKey, setUserKey, remove] =
     useLocalStorage<string>("user-openai-apikey");
   const { loading, summary, resetSummary, summarize } =

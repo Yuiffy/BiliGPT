@@ -34,14 +34,15 @@ export default async function handler(
     service,
     shouldShowTimestamp
   );
-  if (!subtitlesArray && !descriptionText) {
+  // 不支持只有简介的
+  if (!subtitlesArray) {
     console.error("No subtitle in the video: ", videoId);
     if(res) return res.status(501).json('No subtitle in the video');
     return new Response("No subtitle in the video", { status: 501 });
   }
   const inputText = subtitlesArray
     ? getSmallSizeTranscripts(subtitlesArray, subtitlesArray)
-    : descriptionText;
+    : `这个视频没有字幕，只有简介：${descriptionText}`;
   const systemPrompt = getSystemPrompt({
     shouldShowTimestamp: subtitlesArray ? shouldShowTimestamp : false,
   });
