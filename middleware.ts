@@ -36,6 +36,14 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
     const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${bvId}_${process.env.PROMPT_VERSION}`;
     const ipIdentifier = req.ip ?? "127.0.0.11";
 
+    const result = await redis.get<string>(cacheId);
+    if (result) {
+      console.log("hit cache for ", cacheId);
+      return NextResponse.json(result);
+    }else {
+      console.log('can not hit cache for ', cacheId);
+    }
+
     // licenseKeys
     if (userKey) {
       if (checkOpenaiApiKeys(userKey)) {
@@ -55,12 +63,6 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
       if (!isValidatedLicense) {
         return redirectShop(req);
       }
-    }
-
-    const result = await redis.get<string>(cacheId);
-    if (result) {
-      console.log("hit cache for ", cacheId);
-      return NextResponse.json(result);
     }
 
     if (isDev) {
