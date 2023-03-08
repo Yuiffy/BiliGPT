@@ -20,7 +20,9 @@ import getVideoId from "get-video-id";
 
 const promptString = process.env.NEXT_PUBLIC_PROMPT_STRING;
 
-export const Home: NextPage = () => {
+export const Home: NextPage<{
+  showSingIn: (show: boolean) => void;
+}> = ({ showSingIn }) => {
   const router = useRouter();
   const urlState = router.query.slug;
   const searchParams = useSearchParams();
@@ -33,7 +35,7 @@ export const Home: NextPage = () => {
   const [currentVideoId, setCurrentVideoId] = useState<string>("");
   const [userKey, setUserKey, remove] =
     useLocalStorage<string>("user-openai-apikey");
-  const { loading, summary, resetSummary, summarize } = useSummarize();
+  const { loading, summary, resetSummary, summarize } = useSummarize(showSingIn);
   const { toast } = useToast();
   const { analytics } = useAnalytics();
 
