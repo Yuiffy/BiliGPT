@@ -73,7 +73,12 @@ export function getUserSubtitleWithTimestampPrompt(
   const sentenceCount = videoConfig.sentenceNumber || 7;
   const emojiTemplateText = videoConfig.showEmoji ? "[Emoji] " : ""
   const wordsCount = videoConfig.detailLevel ? (Number(videoConfig.detailLevel)/100)*2 : 15;
-  const promptWithTimestamp = `Act as the author and provide exactly ${sentenceCount} bullet points all in ${language} language for the text transcript given in the format [seconds] - [text] \nMake sure that:\n    - Please start by summarizing the whole video in one short sentence\n    - Then, please summarize with each bullet_point is at least ${wordsCount} words\n    - each bullet_point start with \"- \" or a number or a bullet point symbol\n    - each bullet_point should has the start timestamp, use this template: - seconds - ${emojiTemplateText}[bullet_point]\n    - there may be typos in the subtitles, please correct them`;
+  let promptWithTimestamp = `Act as the author and provide exactly ${sentenceCount} bullet points all in ${language} language for the text transcript given in the format [seconds] - [text] \nMake sure that:\n    - Please start by summarizing the whole video in one short sentence\n    - Then, please summarize with each bullet_point is at least ${wordsCount} words\n    - each bullet_point start with \"- \" or a number or a bullet point symbol\n    - each bullet_point should has the start timestamp, use this template: - seconds - ${emojiTemplateText}[bullet_point]\n    - there may be typos in the subtitles, please correct them`;
+  const promptInEnv: any = process.env.NEXT_PUBLIC_PROMPT_STRING;
+  if (promptInEnv && language==='Simplified Chinese' && !emojiTemplateText){
+    // 使用env中的prompt
+    promptWithTimestamp = promptInEnv.replace('{sentenceCount}', sentenceCount);
+  }
   const videoTranscripts = limitTranscriptByteLength(
     JSON.stringify(videoTranscript)
   );

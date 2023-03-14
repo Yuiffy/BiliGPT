@@ -45,9 +45,9 @@ export const Home: NextPage<{
     defaultValues: {
       enableStream: true,
       showTimestamp: true,
-      showEmoji: true,
+      showEmoji: false,
       detailLevel: 600,
-      sentenceNumber: 5,
+      sentenceNumber: 7,
       outlineLevel: 1,
       outputLanguage: "Simplified Chinese",
     },
