@@ -31,9 +31,10 @@ function redirectShop(req: NextRequest) {
 export async function middleware(req: NextRequest, context: NextFetchEvent) {
   try {
     const { userConfig, videoConfig } = (await req.json()) as SummarizeParams;
+    // TODO: update shouldShowTimestamp to use videoConfig
     const { userKey, shouldShowTimestamp } = userConfig || {};
-    const { videoId: bvId } = videoConfig || {};
-    const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${bvId}_${process.env.PROMPT_VERSION}`;
+    const { videoId } = videoConfig || {};
+    const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${videoId}_${process.env.PROMPT_VERSION}`;
     const ipIdentifier = req.ip ?? "127.0.0.11";
 
     const result = await redis.get<string>(cacheId);
@@ -90,6 +91,7 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
           const { success, remaining } = await ratelimitForFreeAccounts.limit(
             userEmail
           );
+          // TODO: only reduce the count after summarized successfully
           console.log(`login user ${userEmail}, remaining: ${remaining}`);
           if (!success) {
             return redirectShop(req);
@@ -103,7 +105,7 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
       }
     }
   } catch (e) {
-    console.error(e)
+    console.error(e);
     return redirectAuth();
   }
 }

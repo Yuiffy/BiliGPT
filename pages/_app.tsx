@@ -18,6 +18,7 @@ import { cn } from "~/lib/utils";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import "../styles/globals.css";
+import "../styles/markdown.css";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -49,7 +50,7 @@ function MyApp({
               )}
             >
               <Header showSingIn={showSingIn} />
-              <main className="mx-auto flex max-w-5xl flex-1 flex-col justify-center bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-50">
+              <main className="mx-auto w-full flex max-w-5xl flex-1 flex-col justify-center bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-50">
                 <Component {...pageProps} showSingIn={showSingIn} />
                 <Analytics />
                 <CommandMenu />

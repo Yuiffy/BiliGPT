@@ -1,5 +1,6 @@
+import { VideoConfigSchema } from "~/utils/schemas/video";
+
 export type SummarizeParams = {
-  bvId: string;
   videoConfig: VideoConfig;
   userConfig: UserConfig;
 };
@@ -10,7 +11,8 @@ export type UserConfig = {
 export type VideoConfig = {
   videoId: string;
   service?: VideoService;
-};
+  pageNumber?: null | string;
+} & VideoConfigSchema;
 
 export enum VideoService {
   Bilibili = "bilibili",
@@ -22,4 +24,8 @@ export enum VideoService {
   LocalAudio = "local-audio",
 }
 
-export type CommonSubtitleItem = { text: string; index: number };
+export type CommonSubtitleItem = {
+  text: string;
+  index: number;
+  s?: number | string;
+};

@@ -2,9 +2,17 @@ import { Redis } from "@upstash/redis";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { fetchSubtitle } from "~/lib/fetchSubtitle";
-import { ChatGPTAgent, fetchOpenAIResult } from "~/lib/openai/fetchOpenAIResult";
+import {
+  ChatGPTAgent,
+  fetchOpenAIResult,
+} from "~/lib/openai/fetchOpenAIResult";
 import { getSmallSizeTranscripts } from "~/lib/openai/getSmallSizeTranscripts";
-import { getSystemPrompt, getUserSubtitlePrompt } from "~/lib/openai/prompt";
+import {
+  getExamplePrompt,
+  getSystemPrompt,
+  getUserSubtitlePrompt,
+  getUserSubtitleWithTimestampPrompt,
+} from "~/lib/openai/prompt";
 import { selectApiKeyAndActivatedLicenseKey } from "~/lib/openai/selectApiKeyAndActivatedLicenseKey";
 import { SummarizeParams } from "~/lib/types";
 import { isDev } from "~/utils/env";
@@ -24,14 +32,13 @@ export default async function handler(
 ) {
   const { videoConfig, userConfig } = (req.body || (await req.json())) as SummarizeParams;
   const { userKey, shouldShowTimestamp } = userConfig;
-  const { videoId, service } = videoConfig;
+  const { videoId } = videoConfig;
 
   if (!videoId) {
     return new Response("No videoId in the request", { status: 500 });
   }
   const { title, subtitlesArray, descriptionText } = await fetchSubtitle(
-    videoId,
-    service,
+    videoConfig,
     shouldShowTimestamp
   );
   // 不支持只有简介的
@@ -42,35 +49,39 @@ export default async function handler(
   }
   const inputText = subtitlesArray
     ? getSmallSizeTranscripts(subtitlesArray, subtitlesArray)
-    : `这个视频没有字幕，只有简介：${descriptionText}`;
-  const systemPrompt = getSystemPrompt({
-    shouldShowTimestamp: subtitlesArray ? shouldShowTimestamp : false,
-  });
-  const userPrompt = getUserSubtitlePrompt(title, inputText);
+    : `这个视频没有字幕，只有简介：${descriptionText}`; // subtitlesArray.map((i) => i.text).join("\n")
+
+  // TODO: try the apiKey way for chrome extensions
+  // const systemPrompt = getSystemPrompt({
+  //   shouldShowTimestamp: subtitlesArray ? shouldShowTimestamp : false,
+  // });
+  // const examplePrompt = getExamplePrompt();
+  const userPrompt = shouldShowTimestamp
+    ? getUserSubtitleWithTimestampPrompt(title, inputText, videoConfig)
+    : getUserSubtitlePrompt(title, inputText, videoConfig);
   if (isDev) {
-    console.log("final system prompt: ", systemPrompt);
+    // console.log("final system prompt: ", systemPrompt);
+    // console.log("final example prompt: ", examplePrompt);
     console.log("final user prompt: ", userPrompt);
   }
 
   try {
-    const payload = {
+    const stream = true;
+    const openAiPayload = {
       model: "gpt-3.5-turbo",
       messages: [
-        {
-          role: ChatGPTAgent.system,
-          content: systemPrompt,
-        },
-        // {"role": "user", "content": "谁赢得了2020年的世界职业棒球大赛?"},
-        // {"role": "assistant", "content": "洛杉矶道奇队在2020年赢得了世界职业棒球大赛冠军。"},
+        // { role: ChatGPTAgent.system, content: systemPrompt },
+        // { role: ChatGPTAgent.user, content: examplePrompt.input },
+        // { role: ChatGPTAgent.assistant, content: examplePrompt.output },
         { role: ChatGPTAgent.user, content: userPrompt },
       ],
-      temperature: 0.5,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-      max_tokens: Number.parseInt((process.env.MAX_TOKENS || (userKey ? "400" : "300")) as string),
-      stream: false,
-      n: 1,
+      // temperature: 0.5,
+      // top_p: 1,
+      // frequency_penalty: 0,
+      // presence_penalty: 0,
+      max_tokens: Number(videoConfig.detailLevel) || Number.parseInt((process.env.MAX_TOKENS || (userKey ? "800" : "600")) as string),
+      stream,
+      // n: 1,
     };
 
     // TODO: need refactor
@@ -78,20 +89,26 @@ export default async function handler(
       userKey,
       videoId
     );
-    const result = await fetchOpenAIResult(payload, openaiApiKey);
-    console.log('result=', result);
-    // TODO: add better logging when dev or prod
-    const redis = Redis.fromEnv();
-    const cacheId = `${shouldShowTimestamp ? "timestamp-" : ""}${videoId}_${process.env.PROMPT_VERSION}`;
-    const data = await redis.set(cacheId, result);
-    console.info(`video ${cacheId} cached:`, data);
+    const result = await fetchOpenAIResult(
+      openAiPayload,
+      openaiApiKey,
+      videoConfig
+    );
+    if (stream) {
+      return new Response(result);
+    }
 
     return  res ? res.status(200).json(result) : NextResponse.json(result);
   } catch (error: any) {
-    console.error("API error", error, error.message);
-    return (!res) ?NextResponse.json({
-      errorMessage: error.message,
-    }) : res.status(500).json({message: error.message});
+    console.error(error.message);
+    return new Response(
+      JSON.stringify({
+        errorMessage: error.message,
+      }),
+      {
+        status: 500,
+      }
+    );
   }
   res.status(500).json({message: 'what'});
 }

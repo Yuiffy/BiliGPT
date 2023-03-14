@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useToast } from "~/hooks/use-toast";
-import { UserConfig, VideoConfig, VideoService } from "~/lib/types";
+import { UserConfig, VideoConfig } from "~/lib/types";
 import { RATE_LIMIT_COUNT } from "~/utils/constants";
 
-export function useSummarize(showSingIn: (show: boolean) => void) {
+export function useSummarize(
+  showSingIn: (show: boolean) => void,
+  enableStream: boolean = true
+) {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<string>("");
   const { toast } = useToast();
@@ -13,8 +16,8 @@ export function useSummarize(showSingIn: (show: boolean) => void) {
   };
 
   const summarize = async (
-    { videoId, service }: VideoConfig,
-    { userKey, shouldShowTimestamp }: UserConfig
+    videoConfig: VideoConfig,
+    userConfig: UserConfig
   ) => {
     setSummary("");
     setLoading(true);
@@ -27,8 +30,8 @@ export function useSummarize(showSingIn: (show: boolean) => void) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          videoConfig: { videoId, service },
-          userConfig: { userKey, shouldShowTimestamp },
+          videoConfig,
+          userConfig,
         }),
       });
 
@@ -59,17 +62,38 @@ export function useSummarize(showSingIn: (show: boolean) => void) {
           });
           showSingIn(true);
         } else {
+          const errorJson = await response.json();
           toast({
             variant: "destructive",
-            title: response.statusText,
+            title: response.status + " " + response.statusText,
             // ReadableStream can't get error message
-            // description: response.body
+            description: errorJson.errorMessage,
           });
         }
         setLoading(false);
         return;
       }
 
+      if (enableStream) {
+        // This data is a ReadableStream
+        const data = response.body;
+        if (!data) {
+          return;
+        }
+
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunkValue = decoder.decode(value);
+          setSummary((prev) => prev + chunkValue);
+        }
+        setLoading(false);
+        return;
+      }
       // await readStream(response, setSummary);
       const result = await response.json();
       if (result.errorMessage) {

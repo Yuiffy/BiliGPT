@@ -48,7 +48,7 @@ export default function Header({
               href="/release"
               target="_blank"
             >
-              <strong className="font-semibold">更新日志 v1.0.1</strong>
+              <strong className="font-semibold">更新日志 v1.5.1</strong>
               <svg
                 width="2"
                 height="2"
@@ -58,11 +58,8 @@ export default function Header({
               >
                 <circle cx="1" cy="1" r="1"></circle>
               </svg>
-              <span className="ml-2 min-[1372px]:hidden">
-                开源项目，开发者日记 · 支持 YouTube 英文内容一键总结啦 🎉
-              </span>
               <span className="ml-2 hidden min-[1372px]:inline">
-                开源项目，开发者日记 · 支持 YouTube 英文内容一键总结啦 🎉
+                开源项目，开发者日记 · 支持 B 站各类型链接 & 自定义输出结果 🎉
               </span>
               <svg
                 width="3"
@@ -82,7 +79,7 @@ export default function Header({
             </a>
           </div>
         </div>
-        <div className="flex items-center space-x-2 sm:space-x-5">
+        <div className="flex items-center space-x-2 sm:space-x-5 shrink-0">
           <Tooltip>
             <TooltipTrigger>
               <a

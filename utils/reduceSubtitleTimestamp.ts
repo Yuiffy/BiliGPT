@@ -51,8 +51,9 @@ export function reduceSubtitleTimestamp<T>(
         accumulator[groupIndex] = {
           // 5.88 -> 5.9
           // text: current.start.toFixed() + ": ",
-          text: shouldShowTimestamp ? getStart(current) + " - " : "",
           index: groupIndex,
+          s: getStart(current),
+          text: shouldShowTimestamp ? getStart(current) + " - " : ""
         };
       }
 

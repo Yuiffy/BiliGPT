@@ -1,3 +1,4 @@
+import { Redis } from "@upstash/redis";
 import {
   createParser,
   ParsedEvent,
@@ -5,6 +6,7 @@ import {
 ,
 } from "eventsource-parser";
 import { trimOpenAiResult } from "~/lib/openai/trimOpenAiResult";
+import { VideoConfig } from "~/lib/types";
 import { isDev } from "~/utils/env";
 import nodeFetch from 'node-fetch';
 const HttpsProxyAgent = require("https-proxy-agent");
@@ -23,18 +25,19 @@ export interface OpenAIStreamPayload {
   api_key?: string;
   model: string;
   messages: ChatGPTMessage[];
-  temperature: number;
-  top_p: number;
-  frequency_penalty: number;
-  presence_penalty: number;
+  temperature?: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
   max_tokens: number;
   stream: boolean;
-  n: number;
+  n?: number;
 }
 
 export async function fetchOpenAIResult(
   payload: OpenAIStreamPayload,
-  apiKey: string
+  apiKey: string,
+  videoConfig: VideoConfig
 ) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
@@ -59,33 +62,49 @@ export async function fetchOpenAIResult(
   });
 
   if (res.status !== 200) {
-    throw new Error("OpenAI API: " + res.statusText);
+    const errorJson = await res.json();
+    throw new Error(`OpenAI API Error [${res.statusText}]: ${errorJson.error?.message}`);
   }
+
+  const { showTimestamp, videoId } = videoConfig;
+  const redis = Redis.fromEnv();
+  const cacheId = showTimestamp ? `timestamp-${videoId}` : videoId;
 
   if (!payload.stream) {
     const result = (typeof res.json !== 'function') ? res.json : (await res.json());
-    return trimOpenAiResult(result);
+    const betterResult = trimOpenAiResult(result);
+
+    const data = await redis.set(cacheId, betterResult);
+    console.info(`video ${cacheId} cached:`, data);
+    isDev && console.log("========betterResult========", betterResult);
+
+    return betterResult;
   } else {
     console.log('stream!');
   }
 
   let counter = 0;
-
+  let tempData = "";
   const stream = new ReadableStream({
     async start(controller) {
       // callback
-      function onParse(event: ParsedEvent | ReconnectInterval) {
+      async function onParse(event: ParsedEvent | ReconnectInterval) {
         if (event.type === "event") {
           const data = event.data;
           // https://beta.openai.com/docs/api-reference/completions/create#completions/create-stream
           if (data === "[DONE]") {
+            // active
             controller.close();
+            const data = await redis.set(cacheId, tempData);
+            console.info(`video ${cacheId} cached:`, data);
+            isDev && console.log("========betterResult after streamed========", tempData);
             return;
           }
           try {
             const json = JSON.parse(data);
-            const text = trimOpenAiResult(json);
-            console.log("=====text====", text);
+            const text = json.choices[0].delta?.content || "";
+            // todo: add redis cache
+            tempData += text;
             if (counter < 2 && (text.match(/\n/) || []).length) {
               // this is a prefix character (i.e., "\n\n"), do nothing
               return;
