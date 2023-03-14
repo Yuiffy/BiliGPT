@@ -1,15 +1,8 @@
 import { Redis } from "@upstash/redis";
-import {
-  createParser,
-  ParsedEvent,
-  ReconnectInterval
-,
-} from "eventsource-parser";
+import { createParser, ParsedEvent, ReconnectInterval, } from "eventsource-parser";
 import { trimOpenAiResult } from "~/lib/openai/trimOpenAiResult";
 import { VideoConfig } from "~/lib/types";
 import { isDev } from "~/utils/env";
-import nodeFetch from 'node-fetch';
-const HttpsProxyAgent = require("https-proxy-agent");
 
 export enum ChatGPTAgent {
   user = "user",
@@ -48,21 +41,29 @@ export async function fetchOpenAIResult(
       throw new Error("OpenAI API Key Format Error");
     }
   */
-  const proxyUrl = process.env.OPENAI_HTTP_PROXY;
-  const proxyAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : null;
 
-  const res = await nodeFetch("https://api.openai.com/v1/chat/completions", {
-    agent: proxyAgent,
+  const fetchParams: any = {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey ?? ""}`,
     },
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  };
+
+  const proxyUrl = process.env.OPENAI_HTTP_PROXY;
+  let fetchFunc = fetch;
+  // if (proxyUrl) {
+  //   const nodeFetch = require('node-fetch');
+  //   const HttpsProxyAgent = require("https-proxy-agent");
+  //   fetchFunc = nodeFetch;
+  //   fetchParams.agent = new HttpsProxyAgent(proxyUrl);
+  // }
+
+  const res = await fetchFunc("https://api.openai.com/v1/chat/completions", fetchParams);
 
   if (res.status !== 200) {
-    const errorJson = await res.json();
+    const errorJson: any = await res.json();
     throw new Error(`OpenAI API Error [${res.statusText}]: ${errorJson.error?.message}`);
   }
 
