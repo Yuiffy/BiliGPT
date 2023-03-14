@@ -68,7 +68,7 @@ export async function fetchOpenAIResult(
 
   const { showTimestamp, videoId } = videoConfig;
   const redis = Redis.fromEnv();
-  const cacheId = showTimestamp ? `timestamp-${videoId}` : videoId;
+  const cacheId = `${showTimestamp ? "timestamp-" : ""}${videoId}_${process.env.PROMPT_VERSION}`;
 
   if (!payload.stream) {
     const result = (typeof res.json !== 'function') ? res.json : (await res.json());

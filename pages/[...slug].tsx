@@ -44,7 +44,7 @@ export const Home: NextPage<{
   } = useForm<VideoConfigSchema>({
     defaultValues: {
       enableStream: true,
-      showTimestamp: false,
+      showTimestamp: true,
       showEmoji: true,
       detailLevel: 600,
       sentenceNumber: 5,

@@ -59,7 +59,7 @@ export default async function handler(
   const userPrompt = shouldShowTimestamp
     ? getUserSubtitleWithTimestampPrompt(title, inputText, videoConfig)
     : getUserSubtitlePrompt(title, inputText, videoConfig);
-  if (isDev) {
+  if (true || isDev) {
     // console.log("final system prompt: ", systemPrompt);
     // console.log("final example prompt: ", examplePrompt);
     console.log("final user prompt: ", userPrompt);
