@@ -44,12 +44,12 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
     const cacheId = getCacheId(videoConfig)
     const ipIdentifier = req.ip ?? '127.0.0.11'
 
-    const result = await redis.get<string>(cacheId);
+    const result = await redis.get<string>(cacheId)
     if (result) {
-      console.log("hit cache for ", cacheId);
-      return NextResponse.json(result);
-    }else {
-      console.log('can not hit cache for ', cacheId);
+      console.log('hit cache for ', cacheId)
+      return NextResponse.json(result)
+    } else {
+      console.log('can not hit cache for ', cacheId)
     }
 
     // licenseKeys
@@ -108,11 +108,11 @@ export async function middleware(req: NextRequest, context: NextFetchEvent) {
       }
     }
 
-    const result = await redis.get<string>(cacheId)
-    if (result) {
-      console.log('hit cache for ', cacheId)
-      return NextResponse.json(result)
-    }
+    // const result = await redis.get<string>(cacheId)
+    // if (result) {
+    //   console.log('hit cache for ', cacheId)
+    //   return NextResponse.json(result)
+    // }
   } catch (e) {
     console.error(e)
     return redirectAuth()

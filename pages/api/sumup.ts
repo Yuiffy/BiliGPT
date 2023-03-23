@@ -8,9 +8,9 @@ import { selectApiKeyAndActivatedLicenseKey } from '~/lib/openai/selectApiKeyAnd
 import { SummarizeParams } from '~/lib/types'
 import { isDev } from '~/utils/env'
 
-const runtime = "edge";
+const runtime = 'edge'
 
-console.log('runtime:', runtime);
+console.log('runtime:', runtime)
 export const config = {
   runtime: 'edge',
 }
@@ -24,7 +24,7 @@ export default async function handler(
   // context: NextFetchEvent
   res: any,
 ) {
-  const { videoConfig, userConfig } = (runtime !== 'edge' ? req.body : (await req.json())) as SummarizeParams
+  const { videoConfig, userConfig } = (runtime !== 'edge' ? req.body : await req.json()) as SummarizeParams
   const { userKey, shouldShowTimestamp } = userConfig
   const { videoId } = videoConfig
 
@@ -35,10 +35,12 @@ export default async function handler(
   // 不支持只有简介的
   if (!subtitlesArray) {
     console.error('No subtitle in the video: ', videoId)
-    if (res) return res.status(501).json('No subtitle in the video');
+    if (res) return res.status(501).json('No subtitle in the video')
     return new Response('No subtitle in the video', { status: 501 })
   }
-  const inputText = subtitlesArray ? getSmallSizeTranscripts(subtitlesArray, subtitlesArray) : `这个视频没有字幕，只有简介：${descriptionText}` // subtitlesArray.map((i) => i.text).join("\n")
+  const inputText = subtitlesArray
+    ? getSmallSizeTranscripts(subtitlesArray, subtitlesArray)
+    : `这个视频没有字幕，只有简介：${descriptionText}` // subtitlesArray.map((i) => i.text).join("\n")
 
   // TODO: try the apiKey way for chrome extensions
   // const systemPrompt = getSystemPrompt({
@@ -68,7 +70,9 @@ export default async function handler(
       // top_p: 1,
       // frequency_penalty: 0,
       // presence_penalty: 0,
-      max_tokens: Number(videoConfig.detailLevel) || Number.parseInt((process.env.MAX_TOKENS || (userKey ? "800" : "600")) as string),
+      max_tokens:
+        Number(videoConfig.detailLevel) ||
+        Number.parseInt((process.env.MAX_TOKENS || (userKey ? '800' : '600')) as string),
       stream,
       // n: 1,
     }
@@ -77,22 +81,24 @@ export default async function handler(
     const openaiApiKey = await selectApiKeyAndActivatedLicenseKey(userKey, videoId)
     const result = await fetchOpenAIResult(openAiPayload, openaiApiKey, videoConfig)
     if (stream) {
-      console.log('stream~, result=', result);
-      return new Response(result);
+      console.log('stream~, result=', result)
+      return new Response(result)
       // return new Response(result)
     }
 
     return NextResponse.json(result)
   } catch (error: any) {
     console.error(error?.message || error)
-    return new Response(
-      JSON.stringify({
-        errorMessage: error.message,
-      }),
-      {
-        status: 500,
-      },
-    )
+    return !res
+      ? new Response(
+          JSON.stringify({
+            errorMessage: error.message,
+          }),
+          {
+            status: 500,
+          },
+        )
+      : res.status(500).json({ message: error.message })
   }
-  res.status(500).json({ message: 'what' });
+  res.status(500).json({ message: 'what' })
 }

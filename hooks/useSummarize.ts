@@ -18,7 +18,7 @@ export function useSummarize(showSingIn: (show: boolean) => void, enableStream: 
 
     try {
       setLoading(true)
-      const response = await fetch('/api/sumup', {
+      const response = await fetch('/api/sumup_nodejs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
