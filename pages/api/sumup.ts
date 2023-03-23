@@ -1,31 +1,22 @@
-import { Redis } from "@upstash/redis";
-import type { NextFetchEvent, NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { fetchSubtitle } from "~/lib/fetchSubtitle";
-import {
-  ChatGPTAgent,
-  fetchOpenAIResult,
-} from "~/lib/openai/fetchOpenAIResult";
-import { getSmallSizeTranscripts } from "~/lib/openai/getSmallSizeTranscripts";
-import {
-  getExamplePrompt,
-  getSystemPrompt,
-  getUserSubtitlePrompt,
-  getUserSubtitleWithTimestampPrompt,
-} from "~/lib/openai/prompt";
-import { selectApiKeyAndActivatedLicenseKey } from "~/lib/openai/selectApiKeyAndActivatedLicenseKey";
-import { SummarizeParams } from "~/lib/types";
-import { isDev } from "~/utils/env";
+import type { NextFetchEvent, NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import { fetchSubtitle } from '~/lib/fetchSubtitle'
+import { ChatGPTAgent, fetchOpenAIResult } from '~/lib/openai/fetchOpenAIResult'
+import { getSmallSizeTranscripts } from '~/lib/openai/getSmallSizeTranscripts'
+import { getUserSubtitlePrompt, getUserSubtitleWithTimestampPrompt } from '~/lib/openai/prompt'
+import { selectApiKeyAndActivatedLicenseKey } from '~/lib/openai/selectApiKeyAndActivatedLicenseKey'
+import { SummarizeParams } from '~/lib/types'
+import { isDev } from '~/utils/env'
 
 const runtime = "edge";
 
 console.log('runtime:', runtime);
 export const config = {
   runtime: 'edge',
-};
+}
 
 if (!process.env.OPENAI_API_KEY) {
-  throw new Error("Missing env var from OpenAI");
+  throw new Error('Missing env var from OpenAI')
 }
 
 export default async function handler(
@@ -33,26 +24,21 @@ export default async function handler(
   // context: NextFetchEvent
   res: any,
 ) {
-  const { videoConfig, userConfig } = (runtime !== 'edge' ? req.body : (await req.json())) as SummarizeParams;
-  const { userKey, shouldShowTimestamp } = userConfig;
-  const { videoId } = videoConfig;
+  const { videoConfig, userConfig } = (runtime !== 'edge' ? req.body : (await req.json())) as SummarizeParams
+  const { userKey, shouldShowTimestamp } = userConfig
+  const { videoId } = videoConfig
 
   if (!videoId) {
-    return new Response("No videoId in the request", { status: 500 });
+    return new Response('No videoId in the request', { status: 500 })
   }
-  const { title, subtitlesArray, descriptionText } = await fetchSubtitle(
-    videoConfig,
-    shouldShowTimestamp
-  );
+  const { title, subtitlesArray, descriptionText } = await fetchSubtitle(videoConfig, shouldShowTimestamp)
   // 不支持只有简介的
   if (!subtitlesArray) {
-    console.error("No subtitle in the video: ", videoId);
+    console.error('No subtitle in the video: ', videoId)
     if (res) return res.status(501).json('No subtitle in the video');
-    return new Response("No subtitle in the video", { status: 501 });
+    return new Response('No subtitle in the video', { status: 501 })
   }
-  const inputText = subtitlesArray
-    ? getSmallSizeTranscripts(subtitlesArray, subtitlesArray)
-    : `这个视频没有字幕，只有简介：${descriptionText}`; // subtitlesArray.map((i) => i.text).join("\n")
+  const inputText = subtitlesArray ? getSmallSizeTranscripts(subtitlesArray, subtitlesArray) : `这个视频没有字幕，只有简介：${descriptionText}` // subtitlesArray.map((i) => i.text).join("\n")
 
   // TODO: try the apiKey way for chrome extensions
   // const systemPrompt = getSystemPrompt({
@@ -61,17 +47,17 @@ export default async function handler(
   // const examplePrompt = getExamplePrompt();
   const userPrompt = shouldShowTimestamp
     ? getUserSubtitleWithTimestampPrompt(title, inputText, videoConfig)
-    : getUserSubtitlePrompt(title, inputText, videoConfig);
+    : getUserSubtitlePrompt(title, inputText, videoConfig)
   if (true || isDev) {
     // console.log("final system prompt: ", systemPrompt);
     // console.log("final example prompt: ", examplePrompt);
-    console.log("final user prompt: ", userPrompt);
+    console.log('final user prompt: ', userPrompt)
   }
 
   try {
-    const stream = true;
+    const stream = true
     const openAiPayload = {
-      model: "gpt-3.5-turbo",
+      model: 'gpt-3.5-turbo',
       messages: [
         // { role: ChatGPTAgent.system, content: systemPrompt },
         // { role: ChatGPTAgent.user, content: examplePrompt.input },
@@ -85,36 +71,28 @@ export default async function handler(
       max_tokens: Number(videoConfig.detailLevel) || Number.parseInt((process.env.MAX_TOKENS || (userKey ? "800" : "600")) as string),
       stream,
       // n: 1,
-    };
+    }
 
     // TODO: need refactor
-    const openaiApiKey = await selectApiKeyAndActivatedLicenseKey(
-      userKey,
-      videoId
-    );
-    const result = await fetchOpenAIResult(
-      openAiPayload,
-      openaiApiKey,
-      videoConfig
-    );
-    console.log('stream & res.status=', { stream, resStatus: res?.status });
+    const openaiApiKey = await selectApiKeyAndActivatedLicenseKey(userKey, videoId)
+    const result = await fetchOpenAIResult(openAiPayload, openaiApiKey, videoConfig)
     if (stream) {
       console.log('stream~, result=', result);
       return new Response(result);
-      // return new Response(result);
+      // return new Response(result)
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(result)
   } catch (error: any) {
-    console.error(error?.message || error);
+    console.error(error?.message || error)
     return new Response(
       JSON.stringify({
         errorMessage: error.message,
       }),
       {
         status: 500,
-      }
-    );
+      },
+    )
   }
   res.status(500).json({ message: 'what' });
 }

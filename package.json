@@ -4,7 +4,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   },
   "repository": "https://github.com/JimmyLv/BibiGPT.git",
   "dependencies": {
@@ -31,6 +35,7 @@
     "class-variance-authority": "^0.4.0",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
+    "csstype": "^3.1.1",
     "eventsource-parser": "^0.1.0",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.4.1",
@@ -46,6 +51,7 @@
     "node-fetch": "^3.3.0",
     "node-html-parser": "^6.1.4",
     "p-retry": "^5.1.2",
+    "prop-types": "^15.8.1",
     "react": "18.2.0",
     "react-bilibili-embed-renderer": "^1.2.1",
     "react-dom": "18.2.0",
@@ -56,7 +62,8 @@
     "react-use": "^17.4.0",
     "react-use-measure": "^2.1.1",
     "tailwind-merge": "^1.10.0",
-    "tailwindcss-animate": "^1.0.5"
+    "tailwindcss-animate": "^1.0.5",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.2",
@@ -66,12 +73,14 @@
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "autoprefixer": "^10.4.12",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
     "postcss": "^8.4.18",
-    "prettier": "^2.8.3",
+    "prettier": "2.8.4",
     "prettier-plugin-tailwindcss": "^0.2.2",
     "semantic-release": "^20.1.1",
     "tailwindcss": "^3.2.4",
     "typescript": "4.9.4"
   },
-  "version": "1.5.0"
+  "version": "2.2.0"
 }

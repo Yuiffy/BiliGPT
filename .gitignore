@@ -43,3 +43,6 @@ package-lock.json
 
 # Sentry
 next.config.original.js
+
+# lockfile
+pnpm-lock.yaml
