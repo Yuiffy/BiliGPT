@@ -1,10 +1,23 @@
-import { isDev } from "~/utils/env";
+import { isDev } from '~/utils/env'
+import nodeFetch from 'node-fetch'
+// import HttpsProxyAgent from "https-proxy-agent";
+const HttpsProxyAgent = require('https-proxy-agent')
 
 export const SUBTITLE_DOWNLOADER_URL = 'https://savesubs.com'
 export async function fetchYoutubeSubtitleUrls(videoId: string) {
-  const url = `https://www.youtube.com/watch?v=${videoId}`;
-  const response = await fetch(SUBTITLE_DOWNLOADER_URL + '/action/extract', {
-    // agent: proxyAgent,
+  const url = `https://www.youtube.com/watch?v=${videoId}`
+
+  const proxyUrl = process.env.OPENAI_HTTP_PROXY
+  const fetchParams: any = {}
+
+  let fetchFunc = fetch
+  if (proxyUrl) {
+    fetchFunc = nodeFetch as any
+    fetchParams.agent = new HttpsProxyAgent(proxyUrl) as any
+  }
+
+  const response = await fetchFunc(SUBTITLE_DOWNLOADER_URL + '/action/extract', {
+    ...fetchParams,
     method: 'POST',
     body: JSON.stringify({
       data: { url },
@@ -19,8 +32,8 @@ export async function fetchYoutubeSubtitleUrls(videoId: string) {
     },
   })
   const { response: json = {} } = await response.json()
-  if(isDev) {
-    console.log("========json========", { json, url });
+  if (isDev) {
+    console.log('========json========', { json, url })
   }
   /*
   * "title": "Microsoft vs Google: AI War Explained | tech",
