@@ -28,6 +28,7 @@ export function useSummarize(showSingIn: (show: boolean) => void, enableStream: 
           userConfig,
         }),
       })
+      console.log('response=', response)
 
       if (response.redirected) {
         window.location.href = response.url

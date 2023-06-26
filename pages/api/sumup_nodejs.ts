@@ -8,7 +8,7 @@ import { selectApiKeyAndActivatedLicenseKey } from '~/lib/openai/selectApiKeyAnd
 import { SummarizeParams } from '~/lib/types'
 import { isDev } from '~/utils/env'
 
-const runtime = 'nodejs'
+const runtime: string = 'nodejs'
 
 console.log('runtime:', runtime)
 export const config = {
@@ -88,11 +88,14 @@ export default async function handler(
         res.status(200).json(result)
       } else return new Response(result)
       // return new Response(result)
+    } else {
+      console.log('result=', result)
     }
 
     return res ? res.status(200).json(result) : NextResponse.json(result)
   } catch (error: any) {
-    console.error('response stream error!', error?.message || error)
+    console.error('response stream error!', error?.message || error, error)
+    res.status(500).json({ message: error.message })
     return new Response(
       JSON.stringify({
         errorMessage: error.message,

@@ -31,7 +31,7 @@ export function SummaryResult({
     : summary
 
   const { summaryArray, formattedSummary } = formatSummary(formattedCachedSummary)
-  const summaryNote = formattedSummary + '\n\n#BibiGPT https://b.jimmylv.cn @吕立青_JimmyLv \nBV1fX4y1Q7Ux'
+  const summaryNote = formattedSummary + '\n\n#BibiGPT https://b.jimmylv.cn\nBV1fX4y1Q7Ux'
 
   const handleCopy = () => {
     if (!isSecureContext) {
