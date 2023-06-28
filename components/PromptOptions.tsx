@@ -1,6 +1,7 @@
 import React from 'react'
 import { UseFormReturn } from 'react-hook-form/dist/types/form'
 import { PROMPT_LANGUAGE_MAP } from '~/utils/constants/language'
+import { GPT_MODEL_MAP } from '~/utils/constants/model'
 
 export function PromptOptions({
   register,
@@ -49,7 +50,7 @@ export function PromptOptions({
           id="sentenceNumber"
           type="range"
           min={3}
-          max={10}
+          max={15}
           step={1}
           className="h-2 w-full cursor-pointer rounded-lg bg-gray-200 accent-black dark:bg-gray-700"
           {...register('sentenceNumber', {
@@ -84,13 +85,30 @@ export function PromptOptions({
           id="detailLevel"
           type="range"
           min={300}
-          max={1000}
+          max={10000}
           step={10}
           className="h-2 w-full cursor-pointer rounded-lg bg-gray-200 accent-black dark:bg-gray-700"
           {...register('detailLevel', {
             valueAsNumber: true,
           })}
         />
+      </div>
+      <div>
+        <label htmlFor="modelSelect" className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+          模型
+        </label>
+        <select
+          id="modelSelect"
+          className="block w-full rounded-md border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:border-sky-500 focus:ring-sky-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-sky-500 dark:focus:ring-sky-500"
+          {...register('modelSelect')}
+        >
+          {/*gpt-4, gpt-4-0613, gpt-4-32k, gpt-4-32k-0613, gpt-3.5-turbo, gpt-3.5-turbo-0613, gpt-3.5-turbo-16k, gpt-3.5-turbo-16k-0613*/}
+          {Object.keys(GPT_MODEL_MAP).map((k: string) => (
+            <option key={GPT_MODEL_MAP[k]} value={GPT_MODEL_MAP[k]}>
+              {k}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   )

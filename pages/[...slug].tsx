@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import useFormPersist from 'react-hook-form-persist'
+import { ErrorMessage } from '@hookform/error-message'
 import { useAnalytics } from '~/components/context/analytics'
 import { PromptOptions } from '~/components/PromptOptions'
 import { SubmitButton } from '~/components/SubmitButton'
@@ -22,8 +23,9 @@ import { DEFAULT_LANGUAGE } from '~/utils/constants/language'
 import { extractPage, extractUrl } from '~/utils/extractUrl'
 import { getVideoIdFromUrl } from '~/utils/getVideoIdFromUrl'
 import { VideoConfigSchema, videoConfigSchema } from '~/utils/schemas/video'
+import { DEFAULT_MODEL } from '~/utils/constants/model'
 
-const promptString = process.env.NEXT_PUBLIC_PROMPT_STRING;
+const promptString = process.env.NEXT_PUBLIC_PROMPT_STRING
 
 export const Home: NextPage<{
   showSingIn: (show: boolean) => void
@@ -51,6 +53,7 @@ export const Home: NextPage<{
       sentenceNumber: 7,
       outlineLevel: 1,
       outputLanguage: DEFAULT_LANGUAGE,
+      modelSelect: DEFAULT_MODEL,
     },
     resolver: zodResolver(videoConfigSchema),
   })
@@ -113,6 +116,7 @@ export const Home: NextPage<{
     }
   }
   const generateSummary = async (url?: string) => {
+    console.log('generateSummary')
     const formValues = getValues()
     console.log('=======formValues=========', formValues)
 
@@ -185,10 +189,17 @@ export const Home: NextPage<{
         />
         <SubmitButton loading={loading} />
         <PromptOptions getValues={getValues} register={register} />
+        <p style={{ color: 'red' }}>{Object.keys(errors).map((k) => `${k} has error}`)}</p>
       </form>
-      <p className="text-left font-medium">
-        询问：{promptString}
-      </p>
+      <ErrorMessage
+        errors={errors}
+        // @ts-ignore
+        name="multipleErrorInput"
+        render={({ messages }) =>
+          messages && Object.entries(messages).map(([type, message]) => <p key={type}>{message}</p>)
+        }
+      />
+      <p className="text-left font-medium">询问：{promptString}</p>
       {summary && (
         <SummaryResult
           summary={summary}

@@ -54,7 +54,9 @@ export function getUserSubtitlePrompt(title: string, transcript: any, videoConfi
 
 export function getUserSubtitleWithTimestampPrompt(title: string, transcript: any, videoConfig: VideoConfig) {
   const videoTitle = title?.replace(/\n+/g, ' ').trim()
-  const videoTranscript = limitTranscriptByteLength(transcript).replace(/\n+/g, ' ').trim()
+  // 这个是硬剪，会导致只总结前面的内容，先不硬
+  // const videoTranscript = limitTranscriptByteLength(transcript).replace(/\n+/g, ' ').trim()
+  const videoTranscript = transcript.replace(/\n+/g, ' ').trim()
   const language = videoConfig.outputLanguage || DEFAULT_LANGUAGE
   const sentenceCount = videoConfig.sentenceNumber || 7
   const emojiTemplateText = videoConfig.showEmoji ? '[Emoji] ' : ''
@@ -66,5 +68,5 @@ export function getUserSubtitleWithTimestampPrompt(title: string, transcript: an
     promptWithTimestamp = promptInEnv.replace('{sentenceCount}', sentenceCount)
   }
   const videoTranscripts = limitTranscriptByteLength(JSON.stringify(videoTranscript))
-  return `Title: ${videoTitle}\nTranscript: ${videoTranscripts}\n\nInstructions: ${promptWithTimestamp}`
+  return `标题: ${videoTitle}\n字幕: ${videoTranscripts}\n\n要求: ${promptWithTimestamp}`
 }

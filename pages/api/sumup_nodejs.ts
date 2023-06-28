@@ -7,6 +7,7 @@ import { getUserSubtitlePrompt, getUserSubtitleWithTimestampPrompt } from '~/lib
 import { selectApiKeyAndActivatedLicenseKey } from '~/lib/openai/selectApiKeyAndActivatedLicenseKey'
 import { SummarizeParams } from '~/lib/types'
 import { isDev } from '~/utils/env'
+import { GPT_MODEL_MAP } from '~/utils/constants/model'
 
 const runtime: string = 'nodejs'
 
@@ -39,7 +40,11 @@ export default async function handler(
     return new Response('No subtitle in the video', { status: 501 })
   }
   const inputText = subtitlesArray
-    ? getSmallSizeTranscripts(subtitlesArray, subtitlesArray)
+    ? getSmallSizeTranscripts(
+        subtitlesArray,
+        subtitlesArray,
+        videoConfig.detailLevel ? videoConfig.detailLevel * 6 : undefined,
+      )
     : `这个视频没有字幕，只有简介：${descriptionText}` // subtitlesArray.map((i) => i.text).join("\n")
 
   // TODO: try the apiKey way for chrome extensions
@@ -59,7 +64,7 @@ export default async function handler(
   try {
     const stream = false
     const openAiPayload = {
-      model: 'gpt-3.5-turbo',
+      model: videoConfig.modelSelect || 'gpt-3.5-turbo',
       messages: [
         // { role: ChatGPTAgent.system, content: systemPrompt },
         // { role: ChatGPTAgent.user, content: examplePrompt.input },
@@ -75,6 +80,12 @@ export default async function handler(
         Number.parseInt((process.env.MAX_TOKENS || (userKey ? '800' : '600')) as string),
       stream,
       // n: 1,
+    }
+
+    if (openAiPayload.model === GPT_MODEL_MAP['gpt-3.5-turbo']) {
+      openAiPayload.max_tokens = Math.min(4097, openAiPayload.max_tokens)
+    } else if (openAiPayload.model === GPT_MODEL_MAP['gpt-3.5-turbo-16k']) {
+      openAiPayload.max_tokens = Math.min(4096 * 4, openAiPayload.max_tokens)
     }
 
     // TODO: need refactor

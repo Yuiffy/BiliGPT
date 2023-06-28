@@ -74,6 +74,7 @@ export async function fetchOpenAIResult(payload: OpenAIStreamPayload, apiKey: st
 
     const data = await redis.set(cacheId, betterResult)
     console.info(`video ${cacheId} cached:`, data)
+    isDev && console.log('========jsonResult========', result)
     isDev && console.log('========betterResult========', betterResult)
 
     return betterResult
