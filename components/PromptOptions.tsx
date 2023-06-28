@@ -85,7 +85,7 @@ export function PromptOptions({
           id="detailLevel"
           type="range"
           min={300}
-          max={10000}
+          max={6000}
           step={10}
           className="h-2 w-full cursor-pointer rounded-lg bg-gray-200 accent-black dark:bg-gray-700"
           {...register('detailLevel', {

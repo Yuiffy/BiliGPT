@@ -2,7 +2,7 @@ import type { NextFetchEvent, NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { fetchSubtitle } from '~/lib/fetchSubtitle'
 import { ChatGPTAgent, fetchOpenAIResult } from '~/lib/openai/fetchOpenAIResultNodejs'
-import { getSmallSizeTranscripts } from '~/lib/openai/getSmallSizeTranscripts'
+import { getSmallSizeTranscripts, getSmallSizeTranscriptsByShuffle } from '~/lib/openai/getSmallSizeTranscripts'
 import { getUserSubtitlePrompt, getUserSubtitleWithTimestampPrompt } from '~/lib/openai/prompt'
 import { selectApiKeyAndActivatedLicenseKey } from '~/lib/openai/selectApiKeyAndActivatedLicenseKey'
 import { SummarizeParams } from '~/lib/types'
@@ -40,8 +40,7 @@ export default async function handler(
     return new Response('No subtitle in the video', { status: 501 })
   }
   const inputText = subtitlesArray
-    ? getSmallSizeTranscripts(
-        subtitlesArray,
+    ? getSmallSizeTranscriptsByShuffle(
         subtitlesArray,
         videoConfig.detailLevel ? videoConfig.detailLevel * 6 : undefined,
       )

@@ -48,7 +48,7 @@ export function reduceSubtitleTimestamp<T>(
         // text: current.start.toFixed() + ": ",
         index: groupIndex,
         s: getStart(current),
-        text: shouldShowTimestamp ? getStart(current) + ' - ' : '',
+        text: shouldShowTimestamp ? getStart(current) + ' -' : '',
       }
     }
 

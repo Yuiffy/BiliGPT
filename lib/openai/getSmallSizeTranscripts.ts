@@ -40,7 +40,7 @@ function filterHalfRandomly<T>(arr: T[]): T[] {
       filteredArr.push(arr[i])
     }
   }
-  console.log("filter once", { l1: arr.length, l2: filteredArr.length });
+  console.log('filter once', { l1: arr.length, l2: filteredArr.length })
   return filteredArr
 }
 function getByteLength(text: string) {
@@ -56,7 +56,7 @@ type SubtitleItem = {
   index: number
 }
 
-const ENV_LIMIT = process.env.PROMPT_BYTE_LIMIT_COUNT;
+const ENV_LIMIT = process.env.PROMPT_BYTE_LIMIT_COUNT
 // Seems like 15,000 bytes is the limit for the prompt
 // 13000 = 6500*2
 const LIMIT_COUNT = ENV_LIMIT ? Number.parseInt(ENV_LIMIT) : 6200 // 2000 is a buffer
@@ -103,6 +103,48 @@ export function getSmallSizeTranscripts(
       .join(' ')
     lastByteLength = getByteLength(resultText)
   }
-  console.log('resultData length', resultData.length);
+  console.log('resultData length', resultData.length)
+  return resultText
+}
+
+function shuffle(array: any[]) {
+  let currentIndex = array.length,
+    randomIndex
+
+  // While there remain elements to shuffle.
+  while (currentIndex != 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex)
+    currentIndex--
+
+    // And swap it with the current element.
+    ;[array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]]
+  }
+
+  return array
+}
+
+export function getSmallSizeTranscriptsByShuffle(textData: SubtitleItem[], byteLimit: number = LIMIT_COUNT): string {
+  let resultData = []
+  let lastByteLength = 0
+  const shuffled = shuffle(textData)
+
+  for (let i = 0; i < shuffled.length; i++) {
+    const obj = shuffled[i]
+
+    const nextTextByteLength = getByteLength(obj.text) + 1
+    const isOverLimit = lastByteLength + nextTextByteLength > byteLimit
+    if (isOverLimit) {
+      break
+    } else {
+      resultData.push(obj)
+      lastByteLength += nextTextByteLength
+    }
+  }
+  const resultText = resultData
+    .sort((a, b) => a.index - b.index)
+    .map((t) => t.text)
+    .join(' ')
+  console.log('getSmallSizeTranscriptsByShuffle', { startLength: textData.length, resultLength: resultData.length })
   return resultText
 }

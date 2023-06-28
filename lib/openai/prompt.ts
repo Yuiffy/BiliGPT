@@ -67,6 +67,8 @@ export function getUserSubtitleWithTimestampPrompt(title: string, transcript: an
     // 使用env中的prompt
     promptWithTimestamp = promptInEnv.replace('{sentenceCount}', sentenceCount)
   }
-  const videoTranscripts = limitTranscriptByteLength(JSON.stringify(videoTranscript))
+  // 这个是硬剪，会导致只总结前面的内容，先不硬2
+  // const videoTranscripts = limitTranscriptByteLength(JSON.stringify(videoTranscript))
+  const videoTranscripts = videoTranscript
   return `标题: ${videoTitle}\n字幕: ${videoTranscripts}\n\n要求: ${promptWithTimestamp}`
 }
