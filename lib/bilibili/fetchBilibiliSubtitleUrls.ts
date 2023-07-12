@@ -46,8 +46,11 @@ export const fetchBilibiliSubtitleUrls = async (
 
     // https://api.bilibili.com/x/player/v2?aid=865462240&cid=1035524244
     const pageUrl = `https://api.bilibili.com/x/player/v2?aid=${aid}&cid=${cid}`
+    console.log(`fetch pageUrl`, pageUrl)
     const res = await fetch(pageUrl, commonConfig)
     const j = await res.json()
+
+    // console.log('fetch pageUrl result', {j, jsonData: json?.data});
 
     // r.data.subtitle.subtitles
     return { ...json.data, subtitle: { list: j.data.subtitle.subtitles } }
