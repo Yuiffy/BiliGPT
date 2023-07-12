@@ -51,13 +51,13 @@ export default async function handler(
   //   shouldShowTimestamp: subtitlesArray ? shouldShowTimestamp : false,
   // });
   // const examplePrompt = getExamplePrompt();
-  const userPrompt = shouldShowTimestamp
+  const { systemPrompt, userPrompt } = shouldShowTimestamp
     ? getUserSubtitleWithTimestampPrompt(title, inputText, videoConfig)
     : getUserSubtitlePrompt(title, inputText, videoConfig)
   if (true || isDev) {
     // console.log("final system prompt: ", systemPrompt);
     // console.log("final example prompt: ", examplePrompt);
-    console.log('final user prompt: ', userPrompt)
+    console.log('final user prompt: ', { userPrompt, systemPrompt })
   }
 
   try {
@@ -65,7 +65,7 @@ export default async function handler(
     const openAiPayload = {
       model: videoConfig.modelSelect || 'gpt-3.5-turbo',
       messages: [
-        // { role: ChatGPTAgent.system, content: systemPrompt },
+        { role: ChatGPTAgent.system, content: systemPrompt },
         // { role: ChatGPTAgent.user, content: examplePrompt.input },
         // { role: ChatGPTAgent.assistant, content: examplePrompt.output },
         { role: ChatGPTAgent.user, content: userPrompt },

@@ -49,7 +49,11 @@ export function getUserSubtitlePrompt(title: string, transcript: any, videoConfi
     : ''
   const prompt = `Your output should use the following template:\n## Summary\n## Highlights\n- ${emojiTemplateText}Bulletpoint${outlineTemplateText}\n\nYour task is to summarise the text I have given you in up to ${sentenceCount} concise bullet points, starting with a short highlight, each bullet point is at least ${wordsCount} words. ${outlineDescriptionText}${emojiDescriptionText}Use the text above: {{Title}} {{Transcript}}.\n\nReply in ${language} Language.`
 
-  return `Title: "${videoTitle}"\nTranscript: "${videoTranscript}"\n\nInstructions: ${prompt}`
+  // return `Title: "${videoTitle}"\nTranscript: "${videoTranscript}"\n\nInstructions: ${prompt}`
+  return {
+    userPrompt: `标题: ${videoTitle}\n字幕: ${videoTranscript}`,
+    systemPrompt: `${prompt}`,
+  }
 }
 
 export function getUserSubtitleWithTimestampPrompt(title: string, transcript: any, videoConfig: VideoConfig) {
@@ -70,5 +74,8 @@ export function getUserSubtitleWithTimestampPrompt(title: string, transcript: an
   // 这个是硬剪，会导致只总结前面的内容，先不硬2
   // const videoTranscripts = limitTranscriptByteLength(JSON.stringify(videoTranscript))
   const videoTranscripts = videoTranscript
-  return `标题: ${videoTitle}\n字幕: ${videoTranscripts}\n\n要求: ${promptWithTimestamp}`
+  return {
+    userPrompt: `标题: ${videoTitle}\n字幕: ${videoTranscripts}`,
+    systemPrompt: `${promptWithTimestamp}`,
+  }
 }
