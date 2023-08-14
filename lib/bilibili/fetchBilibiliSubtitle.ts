@@ -15,7 +15,8 @@ export async function fetchBilibiliSubtitle(
     return { title, subtitlesArray: null, descriptionText }
   }
 
-  const betterSubtitle = subtitleList.find(({ lan }: { lan: string }) => lan === 'zh-CN') || subtitleList[0]
+  const betterSubtitle =
+    subtitleList.find(({ lan }: { lan: string }) => lan === 'zh-CN' || lan === 'ai-zh') || subtitleList[0]
   const subtitleUrl = betterSubtitle?.subtitle_url?.startsWith('//')
     ? `https:${betterSubtitle?.subtitle_url}`
     : betterSubtitle?.subtitle_url
